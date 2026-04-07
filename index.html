@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Spacepad</title>
     <meta name="theme-color" content="#1e1e1e">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlNwYWNlcGFkIiwKICAic2hvcnRfbmFtZSI6ICJTcGFjZXBhZCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMWUxZTFlIiwKICAidGhlbWVfY29sb3IiOiAiIzFlMWUxZSIsCiAgImljb25zIjogW3sgInNyYyI6ICpja29uLnBuZyIsICJ0eXBlIjogImltYWdlL3BuZyIsICJzaXplcyI6ICI1MTJ4NTEyIn1dCn0=">
+    <!-- Исправленный манифест (ссылка на иконку исправлена) -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlNwYWNlcGFkIiwKICAic2hvcnRfbmFtZSI6ICJTcGFjZXBhZCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMWUxZTFlIiwKICAidGhlbWVfY29sb3IiOiAiIzFlMWUxZSIsCiAgImljb25zIjogW3sgInNyYyI6ICJpY29uLnBuZyIsICJ0eXBlIjogImltYWdlL3BuZyIsICJzaXplcyI6ICI1MTJ4NTEyIn1dCn0=">
     <link rel="apple-touch-icon" href="icon.png">
     <style>
         :root { --bg: #1e1e1e; --panel: #2d2d2d; --text: #d4d4d4; --accent: #007acc; --accent-hover: #0090f0; --border: #444; --btn: #3c3c3c; --btn-hover: #4a4a4a; }
@@ -97,10 +98,20 @@
     </div>
 </div>
 <script>
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('data:text/javascript;base64,' + btoa('self.addEventListener("fetch", (e) => {});')); }
+    // Регистрация Service Worker для работы PWA
+    if ('serviceWorker' in navigator) {
+        const swCode = `
+            self.addEventListener('install', e => self.skipWaiting());
+            self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => {})));
+        `;
+        const blob = new Blob([swCode], {type: 'text/javascript'});
+        navigator.serviceWorker.register(URL.createObjectURL(blob));
+    }
+
     let files = JSON.parse(localStorage.getItem('spacepad_files')) || [{ name: 'untitled.html', content: '', fontSize: 16, wrap: true, isMono: true }];
     let activeIndex = parseInt(localStorage.getItem('spacepad_active')) || 0;
     if (activeIndex >= files.length) activeIndex = 0;
+    
     const editor = document.getElementById('editor');
     const wrap = document.getElementById('editorWrap');
     const helper = document.getElementById('caretHelper');
@@ -208,21 +219,14 @@
     function saveFile() {
         const f = files[activeIndex];
         const format = document.getElementById('saveFormat').value;
-        
-        // Отсекаем старое расширение для подготовки предложенного имени
         let currentBase = f.name;
-        if (currentBase.includes('.')) {
-            currentBase = currentBase.substring(0, currentBase.lastIndexOf('.'));
-        }
-        
-        // Подставляем расширение из выпадашки в окно сохранения
+        if (currentBase.includes('.')) currentBase = currentBase.substring(0, currentBase.lastIndexOf('.'));
         let suggestedName = format === 'custom' ? f.name : currentBase + '.' + format;
 
         let userInput = prompt("Введите имя файла:", suggestedName);
         if (!userInput) return;
 
         let finalName = userInput;
-        // Если юзер стер точку и формат не кастомный — добавляем расширение из списка
         if (!finalName.includes('.') && format !== 'custom') {
             finalName += '.' + format;
         }
@@ -292,10 +296,8 @@
 
             if (listMatch) {
                 e.preventDefault();
-                let markerPart = listMatch[2];
-                let fullMarker = listMatch[1] + markerPart + ' ';
-                
-                if (listMatch[3]) { // Если это цифра
+                let fullMarker = listMatch[0];
+                if (listMatch[3]) {
                     const nextNum = parseInt(listMatch[3]) + 1;
                     fullMarker = listMatch[1] + nextNum + '. ';
                 }
