@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Spacepad</title>
     <meta name="theme-color" content="#1e1e1e">
-    <link rel="icon" type="image/png" href="icon.png">
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlNwYWNlcGFkIiwKICAic2hvcnRfbmFtZSI6ICJTcGFjZXBhZCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMWUxZTFlIiwKICAidGhlbWVfY29sb3IiOiAiIzFlMWUxZSIsCiAgImljb25zIjogW3sgInNyYyI6ICJpY29uLnBuZyIsICJ0eXBlIjogImltYWdlL3BuZyIsICJzaXplcyI6ICI1MTJ4NTEyIn1dCn0=">
     <link rel="apple-touch-icon" href="icon.png">
     <style>
@@ -13,7 +12,7 @@
         * { box-sizing: border-box; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: var(--bg); color: var(--text); overflow: hidden; position: fixed; font-family: sans-serif; }
         .container { display: flex; flex-direction: column; height: 100vh; width: 100%; position: absolute; top: 0; left: 0; }
-
+        
         .tabs-container { display: flex; background: #252526; border-bottom: 1px solid var(--border); flex-shrink: 0; }
         .tabs { display: flex; overflow-x: auto; flex: 1; scrollbar-width: none; scroll-behavior: smooth; }
         .tabs::-webkit-scrollbar { display: none; }
@@ -36,37 +35,41 @@
 
         .footer-controls { flex-shrink: 0; background: var(--panel); border-top: 1px solid var(--border); width: 100%; }
         .scroll-toolbar { display: flex; overflow-x: auto; gap: 8px; padding: 10px; align-items: center; scrollbar-width: none; }
+        .scroll-toolbar::-webkit-scrollbar { display: none; }
+        
         .btn-group { display: flex; gap: 4px; padding-right: 10px; flex-shrink: 0; }
-        
-        button, select { height: 44px; flex: 0 0 auto; background: var(--btn); color: white; border: 1px solid var(--border); padding: 0 14px; cursor: pointer; border-radius: 6px; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .btn-group:last-child { padding-right: 0; }
+
+        button, select { height: 44px; flex: 0 0 auto; background: var(--btn); color: white; border: 1px solid var(--border); padding: 0 14px; cursor: pointer; border-radius: 6px; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: background 0.2s, border-color 0.2s; }
         button:hover, select:hover { background: var(--btn-hover); }
-        
         .active-btn { background: var(--accent) !important; border-color: #0090f0 !important; }
         .active-btn:hover { background: var(--accent-hover) !important; }
 
-        .status-bar { background: var(--panel); color: #aaa; padding: 6px 12px; font-size: 11px; display: flex; gap: 15px; font-family: sans-serif; overflow-x: auto; white-space: nowrap; border-top: 1px solid var(--border); }
+        .status-bar { background: #333; color: #aaa; padding: 6px 12px; font-size: 11px; display: flex; gap: 15px; font-family: sans-serif; overflow-x: auto; white-space: nowrap; }
         .status-bar b { color: #ddd; }
+
+        @media (min-width: 768px) {
+            .scroll-toolbar { display: flex; justify-content: space-between; overflow: hidden; }
+            .right-aligned { display: flex; margin-left: auto; }
+            .desktop-hide { display: none !important; }
+        }
     </style>
 </head>
 <body>
-
 <div class="container" id="mainApp">
     <div class="tabs-container" id="tabsOuter">
         <div class="tabs" id="tabsBar"></div>
         <div class="add-tab" onclick="newFile()">+</div>
     </div>
-
     <div class="editor-container">
         <textarea id="editor" class="font-mono" spellcheck="false" oninput="onTextChange()" onkeydown="handleKeyDown(event)" placeholder="Spacepad..."></textarea>
     </div>
-
     <div class="footer-controls">
         <div class="scroll-toolbar">
             <div class="btn-group">
                 <button onclick="document.execCommand('undo')">↩️</button>
                 <button onclick="document.execCommand('redo')">↪️</button>
             </div>
-
             <div class="btn-group">
                 <button onclick="document.getElementById('fileInput').click()">📂</button>
                 <input type="file" id="fileInput" hidden onchange="openFile(event)">
@@ -77,26 +80,23 @@
                 </select>
                 <button onclick="saveFile()">💾</button>
             </div>
-
-            <div class="btn-group">
-                <button onclick="smartIndent()">TAB</button>
+            <div class="btn-group desktop-hide">
+                <button onclick="smartTab()">TAB</button>
             </div>
-
-            <div class="btn-group">
-                <button onclick="changeZoom(-2)">A-</button>
-                <button onclick="changeZoom(2)">A+</button>
-            </div>
-
-            <div class="btn-group">
-                <button onclick="toggleWrap()" id="wrapBtn">Wrap</button>
-                <button onclick="toggleFont()" id="fontBtn"><b>M</b></button>
-            </div>
-            
-            <div class="btn-group">
-                <button onclick="clearCurrentFile()">🗑️</button>
+            <div class="right-aligned btn-group">
+                <div class="btn-group">
+                    <button onclick="changeZoom(-2)">A-</button>
+                    <button onclick="changeZoom(2)">A+</button>
+                </div>
+                <div class="btn-group">
+                    <button onclick="toggleWrap()" id="wrapBtn">Wrap</button>
+                    <button onclick="toggleFont()" id="fontBtn"><b>M</b></button>
+                </div>
+                <div class="btn-group">
+                    <button onclick="clearCurrentFile()">🗑️</button>
+                </div>
             </div>
         </div>
-
         <div class="status-bar">
             <span>Lines: <b id="statLines">1</b></span>
             <span>Chars: <b id="statChars">0</b></span>
@@ -104,122 +104,97 @@
         </div>
     </div>
 </div>
-
 <script>
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('data:text/javascript;base64,' + btoa('self.addEventListener("fetch", (e) => {});')); }
-    
     let files = JSON.parse(localStorage.getItem('spacepad_files')) || [{ name: 'untitled.html', content: '', fontSize: 16, wrap: true, isMono: true }];
     let activeIndex = parseInt(localStorage.getItem('spacepad_active')) || 0;
     if (activeIndex >= files.length) activeIndex = 0;
-
     const editor = document.getElementById('editor');
-
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', () => { 
-            document.getElementById('mainApp').style.height = window.visualViewport.height + 'px'; 
-            window.scrollTo(0, 0); 
-        });
-    }
-
-    function smartIndent() {
-        const start = editor.selectionStart;
-        const text = editor.value;
-        const lineStart = text.lastIndexOf('\n', start - 1) + 1;
-        const currentLine = text.substring(lineStart, text.indexOf('\n', start) === -1 ? text.length : text.indexOf('\n', start));
-
-        if (/^(\s*)((\d+)\.|\-)\s/.test(currentLine)) {
-            editor.setRangeText('    ', lineStart, lineStart, 'end');
-            onTextChange();
-        } else {
-            insertChar('    ');
-        }
-    }
-
-    function handleKeyDown(e) {
-        const start = editor.selectionStart;
-        const end = editor.selectionEnd;
-        const text = editor.value;
-
-        // Умный Backspace для удаления таба
-        if (e.key === 'Backspace' && start === end && start >= 4) {
-            const before = text.substring(start - 4, start);
-            if (before === '    ') {
-                e.preventDefault();
-                editor.setRangeText('', start - 4, start, 'end');
-                onTextChange();
-                return;
-            }
-        }
-
-        if (e.key === 'Tab') { e.preventDefault(); smartIndent(); }
-        
-        if (e.key === 'Enter') {
-            const before = text.substring(0, start);
-            const lines = before.split('\n');
-            const currentLine = lines[lines.length - 1];
-            const listMatch = currentLine.match(/^(\s*)((\d+)\.|\-)\s/);
-
-            if (listMatch) {
-                const indent = listMatch[1];
-                const marker = listMatch[2];
-
-                if (currentLine.trim() === marker.replace('.', '').trim()) {
-                    e.preventDefault();
-                    const lineStart = start - currentLine.length;
-                    editor.setRangeText('', lineStart, start, 'end');
-                    onTextChange();
-                    return;
-                }
-
-                e.preventDefault();
-                let nextMarker = marker;
-                if (marker.includes('.')) {
-                    nextMarker = (parseInt(listMatch[3]) + 1) + '.';
-                }
-                insertChar('\n' + indent + nextMarker + ' ');
-            }
-        }
-    }
+    const mainApp = document.getElementById('mainApp');
+    if (window.visualViewport) { window.visualViewport.addEventListener('resize', () => { mainApp.style.height = window.visualViewport.height + 'px'; window.scrollTo(0, 0); }); }
 
     function renderTabs() {
-        const bar = document.getElementById('tabsBar');
-        bar.innerHTML = '';
+        const bar = document.getElementById('tabsBar'); bar.innerHTML = '';
         document.getElementById('tabsOuter').classList.toggle('only-one', files.length === 1);
         files.forEach((f, i) => {
-            const d = document.createElement('div');
-            d.className = `tab ${i === activeIndex ? 'active' : ''}`;
+            const d = document.createElement('div'); d.className = `tab ${i === activeIndex ? 'active' : ''}`;
             d.innerHTML = `<div class="tab-name" onclick="switchTab(${i})" ondblclick="renameTab(${i})">${f.name}</div><div class="tab-close" onclick="closeTab(${i}, event)">×</div>`;
             bar.appendChild(d);
         });
-        const activeTab = document.querySelector('.tab.active');
-        if (activeTab) activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        const activeTab = document.querySelector('.tab.active'); if (activeTab) activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center' });
         applyData();
     }
 
     function applyData() {
-        const f = files[activeIndex];
-        editor.value = f.content;
-        editor.style.fontSize = f.fontSize + 'px';
-        editor.style.whiteSpace = f.wrap ? 'pre-wrap' : 'pre';
-        editor.className = f.isMono ? 'font-mono' : 'font-sans';
-        document.getElementById('fontBtn').classList.toggle('active-btn', f.isMono);
-        document.getElementById('wrapBtn').classList.toggle('active-btn', f.wrap);
+        const f = files[activeIndex]; editor.value = f.content; editor.style.fontSize = f.fontSize + 'px';
+        editor.style.whiteSpace = f.wrap ? 'pre-wrap' : 'pre'; editor.className = f.isMono ? 'font-mono' : 'font-sans';
+        document.getElementById('fontBtn').classList.toggle('active-btn', f.isMono); document.getElementById('wrapBtn').classList.toggle('active-btn', f.wrap);
         updateStats();
     }
 
     function onTextChange() { files[activeIndex].content = editor.value; saveToLocalStorage(); updateStats(); }
     function saveToLocalStorage() { localStorage.setItem('spacepad_files', JSON.stringify(files)); localStorage.setItem('spacepad_active', activeIndex); }
 
+    function smartTab() {
+        const start = editor.selectionStart;
+        const text = editor.value;
+        const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+        const currentLine = text.substring(lineStart, start);
+        if (currentLine.match(/^(\s*)(\d+\.|-)\s+/)) {
+            editor.setRangeText('    ', lineStart, lineStart, 'end');
+        } else {
+            document.execCommand('insertText', false, '    ');
+        }
+        onTextChange();
+    }
+
+    function handleKeyDown(e) {
+        if (e.key === 'Tab') { e.preventDefault(); smartTab(); }
+        if (e.key === 'Backspace') {
+            const start = editor.selectionStart;
+            const text = editor.value;
+            const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+            if (start > lineStart && text.substring(start - 4, start) === '    ') {
+                e.preventDefault();
+                editor.setRangeText('', start - 4, start, 'end');
+                onTextChange();
+            }
+        }
+        if (e.key === 'Enter') {
+            const start = editor.selectionStart;
+            const text = editor.value;
+            const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+            const currentLine = text.substring(lineStart, start);
+            
+            const numMatch = currentLine.match(/^(\s*)(\d+)\.\s+(.*)/);
+            const dashMatch = currentLine.match(/^(\s*)-\s+(.*)/);
+
+            if (numMatch || dashMatch) {
+                e.preventDefault();
+                const match = numMatch || dashMatch;
+                const indent = match[1];
+                const content = match[3] || match[2] || "";
+
+                if (content.trim() === "") {
+                    // Если строка пустая (только маркер), удаляем его (выход из списка)
+                    editor.setRangeText("", lineStart, start, "end");
+                } else {
+                    let nextMarker = "-";
+                    if (numMatch) {
+                        nextMarker = (parseInt(numMatch[2]) + 1) + ".";
+                    }
+                    document.execCommand('insertText', false, "\n" + indent + nextMarker + " ");
+                }
+                onTextChange();
+            }
+        }
+    }
+
     function clearCurrentFile() { if (confirm('Clear file?')) { editor.value = ''; onTextChange(); } }
-    
     function saveFile() {
-        let ext = document.getElementById('saveFormat').value;
-        if (ext === 'custom') ext = prompt("Ext:", "html");
-        if (!ext) return;
-        ext = ext.replace(/^\./, '');
+        let ext = document.getElementById('saveFormat').value; if (ext === 'custom') ext = prompt("Ext:", "html"); if (!ext) return;
         let baseName = files[activeIndex].name.split('.').slice(0, -1).join('.') || files[activeIndex].name;
-        let userInput = prompt("Name:", baseName);
-        if (!userInput) return;
+        let userInput = prompt("Name:", baseName); if (!userInput) return;
         let fullName = userInput + '.' + ext.replace(/^\./, '');
         const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
         const blob = new Blob([bom, new TextEncoder().encode(editor.value)], { type: 'text/plain;charset=utf-8' });
@@ -231,11 +206,9 @@
         const f = ev.target.files; if (!f) return;
         const r = new FileReader();
         r.onload = (e) => {
-            let t; try { t = new TextDecoder('utf-8', { fatal: true }).decode(e.target.result); } 
-            catch { t = new TextDecoder('windows-1251').decode(e.target.result); }
+            let t; try { t = new TextDecoder('utf-8', { fatal: true }).decode(e.target.result); } catch { t = new TextDecoder('windows-1251').decode(e.target.result); }
             files.push({ name: f.name, content: t, fontSize: 16, wrap: true, isMono: true });
-            activeIndex = files.length - 1; saveToLocalStorage(); renderTabs();
-            ev.target.value = '';
+            activeIndex = files.length - 1; saveToLocalStorage(); renderTabs(); ev.target.value = '';
         };
         r.readAsArrayBuffer(f);
     }
@@ -245,11 +218,10 @@
     function closeTab(i, e) { e.stopPropagation(); files.splice(i, 1); activeIndex = Math.min(activeIndex, files.length - 1); saveToLocalStorage(); renderTabs(); }
     function renameTab(i) { let n = prompt("Rename:", files[i].name); if (n) { files[i].name = n; saveToLocalStorage(); renderTabs(); } }
     function insertChar(c) { editor.focus(); document.execCommand('insertText', false, c); onTextChange(); }
-    function changeZoom(v) { files[activeIndex].fontSize = Math.max(8, files[activeIndex].fontSize + v); applyData(); saveToLocalStorage(); }
     function toggleFont() { files[activeIndex].isMono = !files[activeIndex].isMono; saveToLocalStorage(); applyData(); }
+    function changeZoom(v) { files[activeIndex].fontSize = Math.max(8, files[activeIndex].fontSize + v); applyData(); saveToLocalStorage(); }
     function toggleWrap() { files[activeIndex].wrap = !files[activeIndex].wrap; saveToLocalStorage(); applyData(); }
     function updateStats() { const txt = editor.value; document.getElementById('statLines').innerText = txt ? txt.split('\n').length : 0; document.getElementById('statChars').innerText = txt.length; document.getElementById('statNoSpace').innerText = txt.replace(/\s/g, '').length; }
-
     renderTabs();
 </script>
 </body>
