@@ -58,7 +58,7 @@
             <button onclick="insertChar('    ')">TAB</button>
             <button onclick="insertChar('{')">{</button><button onclick="insertChar('}')">}</button>
             <button onclick="insertChar('[')">[</button><button onclick="insertChar(']')">]</button>
-            <button onclick="insertChar('Validar(')">(</button><button onclick="insertChar(')')">)</button>
+            <button onclick="insertChar('(')">(</button><button onclick="insertChar(')')">)</button>
             <button onclick="insertChar(';')">;</button>
         </div>
 
@@ -76,7 +76,7 @@
                     <option value="html">.html</option>
                     <option value="custom">...</option>
                 </select>
-                <button onclick="saveFile()" id="saveBtn">💾</button>
+                <button onclick="saveFile()">💾</button>
             </div>
 
             <div class="btn-group">
@@ -107,10 +107,8 @@
         navigator.serviceWorker.register('data:text/javascript;base64,' + btoa('self.addEventListener("fetch", (e) => {});'));
     }
 
-    // Загрузка данных из памяти или создание дефолтных
     let files = JSON.parse(localStorage.getItem('spacepad_files')) || [{ name: 'untitled.txt', content: '', fontSize: 16, wrap: true, isMono: true }];
     let activeIndex = parseInt(localStorage.getItem('spacepad_active')) || 0;
-    
     if (activeIndex >= files.length) activeIndex = 0;
 
     const editor = document.getElementById('editor');
@@ -191,11 +189,8 @@
         r.onload = (e) => {
             const buffer = e.target.result;
             let text;
-            try {
-                text = new TextDecoder('utf-8', { fatal: true }).decode(buffer);
-            } catch {
-                text = new TextDecoder('windows-1251').decode(buffer);
-            }
+            try { text = new TextDecoder('utf-8', { fatal: true }).decode(buffer); } 
+            catch { text = new TextDecoder('windows-1251').decode(buffer); }
             files.push({ name: f[0].name, content: text, fontSize: 16, wrap: true, isMono: true });
             activeIndex = files.length - 1;
             saveToLocalStorage();
@@ -222,13 +217,18 @@
     function closeTab(i, e) {
         e.stopPropagation();
         if (files.length === 1) {
-            files = [{ name: 'untitled.txt', content: '', fontSize: 16, wrap: true, isMono: true }];
+            if (confirm('Очистить содержимое вкладки?')) {
+                editor.value = '';
+                files[0].content = '';
+                saveToLocalStorage();
+                updateStats();
+            }
         } else {
             files.splice(i, 1);
             activeIndex = Math.min(activeIndex, files.length - 1);
+            saveToLocalStorage();
+            renderTabs();
         }
-        saveToLocalStorage();
-        renderTabs();
     }
 
     function renameTab(i) {
