@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Spacepad</title>
     <meta name="theme-color" content="#1e1e1e">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlNwYWNlcGFkIiwKICAic2hvcnRfbmFtZSI6ICJTcGFjZXBhZCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMWUxZTFlIiwKICAidGhlbWVfY29sb3IiOiAiIzFlMWUxZSIsCiAgImljb25zIjogW3sgInNyYyI6ICJpY29uLnBuZyIsICJ0eXBlIjogImltYWdlL3BuZyIsICJzaXplcyI6ICI1MTJ4NTEyIn1dCn0=">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlNwYWNlcGFkIiwKICAic2hvcnRfbmFtZSI6ICJTcGFjZXBhZCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMWUxZTFlIiwKICAidGhlbWVfY29sb3IiOiAiIzFlMWUxZSIsCiAgImljb25zIjogW3sgInNyYyI6ICpja29uLnBuZyIsICJ0eXBlIjogImltYWdlL3BuZyIsICJzaXplcyI6ICI1MTJ4NTEyIn1dCn0=">
     <link rel="apple-touch-icon" href="icon.png">
     <style>
         :root { --bg: #1e1e1e; --panel: #2d2d2d; --text: #d4d4d4; --accent: #007acc; --accent-hover: #0090f0; --border: #444; --btn: #3c3c3c; --btn-hover: #4a4a4a; }
@@ -126,102 +126,118 @@
     }
 
     function applyData() {
-        const f = files[activeIndex]; editor.value = f.content; editor.style.fontSize = f.fontSize + 'px';
-        editor.style.whiteSpace = f.wrap ? 'pre-wrap' : 'pre'; editor.className = f.isMono ? 'font-mono' : 'font-sans';
-        document.getElementById('fontBtn').classList.toggle('active-btn', f.isMono); document.getElementById('wrapBtn').classList.toggle('active-btn', f.wrap);
+        const f = files[activeIndex];
+        editor.value = f.content || '';
+        editor.style.fontSize = f.fontSize + 'px';
+        editor.style.whiteSpace = f.wrap ? 'pre-wrap' : 'pre';
+        editor.className = f.isMono ? 'font-mono' : 'font-sans';
+        document.getElementById('wrapBtn').classList.toggle('active-btn', f.wrap);
+        document.getElementById('fontBtn').classList.toggle('active-btn', f.isMono);
         updateStats();
+        saveToLocal();
     }
 
-    function onTextChange() { files[activeIndex].content = editor.value; saveToLocalStorage(); updateStats(); }
-    function saveToLocalStorage() { localStorage.setItem('spacepad_files', JSON.stringify(files)); localStorage.setItem('spacepad_active', activeIndex); }
+    function onTextChange() {
+        files[activeIndex].content = editor.value;
+        updateStats();
+        saveToLocal();
+    }
+
+    function updateStats() {
+        const text = editor.value;
+        document.getElementById('statLines').innerText = text.split('\n').length;
+        document.getElementById('statChars').innerText = text.length;
+        document.getElementById('statNoSpace').innerText = text.replace(/\s/g, '').length;
+    }
+
+    function saveToLocal() {
+        localStorage.setItem('spacepad_files', JSON.stringify(files));
+        localStorage.setItem('spacepad_active', activeIndex);
+    }
+
+    function switchTab(i) { activeIndex = i; renderTabs(); }
+
+    function newFile() {
+        files.push({ name: 'untitled.html', content: '', fontSize: 16, wrap: true, isMono: true });
+        activeIndex = files.length - 1;
+        renderTabs();
+    }
+
+    function renameTab(i) {
+        const newName = prompt('Имя файла:', files[i].name);
+        if (newName) { files[i].name = newName; renderTabs(); }
+    }
+
+    function closeTab(i, e) {
+        e.stopPropagation();
+        if (files.length === 1) return;
+        files.splice(i, 1);
+        if (activeIndex >= files.length) activeIndex = files.length - 1;
+        renderTabs();
+    }
+
+    function saveFile() {
+        const f = files[activeIndex];
+        const format = document.getElementById('saveFormat').value;
+        let name = f.name;
+        if (format !== 'custom') name = name.split('.')[0] + '.' + format;
+        const blob = new Blob([editor.value], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        a.click();
+    }
+
+    function openFile(e) {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            files.push({ name: file.name, content: ev.target.result, fontSize: 16, wrap: true, isMono: true });
+            activeIndex = files.length - 1; renderTabs();
+        };
+        reader.readAsText(file);
+    }
+
+    function changeZoom(v) { files[activeIndex].fontSize += v; applyData(); }
+    function toggleWrap() { files[activeIndex].wrap = !files[activeIndex].wrap; applyData(); }
+    function toggleFont() { files[activeIndex].isMono = !files[activeIndex].isMono; applyData(); }
+    function clearCurrentFile() { if(confirm('Очистить?')) { editor.value = ''; onTextChange(); } }
 
     function smartTab() {
         const start = editor.selectionStart;
-        const text = editor.value;
-        const lineStart = text.lastIndexOf('\n', start - 1) + 1;
-        const currentLine = text.substring(lineStart, start);
-        if (currentLine.match(/^(\s*)(\d+\.|-)\s+/)) {
-            editor.setRangeText('    ', lineStart, lineStart, 'end');
-        } else {
-            document.execCommand('insertText', false, '    ');
-        }
+        const value = editor.value;
+        const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+        editor.value = value.substring(0, lineStart) + "\t" + value.substring(lineStart);
+        editor.selectionStart = editor.selectionEnd = start + 1;
         onTextChange();
     }
 
     function handleKeyDown(e) {
-        if (e.key === 'Tab') { e.preventDefault(); smartTab(); }
-        if (e.key === 'Backspace') {
-            const start = editor.selectionStart;
-            const text = editor.value;
-            const lineStart = text.lastIndexOf('\n', start - 1) + 1;
-            if (start > lineStart && text.substring(start - 4, start) === '    ') {
-                e.preventDefault();
-                editor.setRangeText('', start - 4, start, 'end');
-                onTextChange();
-            }
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            smartTab();
         }
         if (e.key === 'Enter') {
             const start = editor.selectionStart;
-            const text = editor.value;
-            const lineStart = text.lastIndexOf('\n', start - 1) + 1;
-            const currentLine = text.substring(lineStart, start);
+            const value = editor.value;
+            const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+            const currentLine = value.substring(lineStart, start);
+            const listMatch = currentLine.match(/^(\s*)([-*+]|\d+\.)\s+/);
             
-            const numMatch = currentLine.match(/^(\s*)(\d+)\.\s+(.*)/);
-            const dashMatch = currentLine.match(/^(\s*)-\s+(.*)/);
-
-            if (numMatch || dashMatch) {
+            if (listMatch) {
                 e.preventDefault();
-                const match = numMatch || dashMatch;
-                const indent = match[1];
-                const content = match[3] || match[2] || "";
-
-                if (content.trim() === "") {
-                    // Если строка пустая (только маркер), удаляем его (выход из списка)
-                    editor.setRangeText("", lineStart, start, "end");
-                } else {
-                    let nextMarker = "-";
-                    if (numMatch) {
-                        nextMarker = (parseInt(numMatch[2]) + 1) + ".";
-                    }
-                    document.execCommand('insertText', false, "\n" + indent + nextMarker + " ");
+                let nextMarker = listMatch[2];
+                if (nextMarker.includes('.')) {
+                    nextMarker = (parseInt(nextMarker) + 1) + '.';
                 }
+                const indent = listMatch[1] + nextMarker + ' ';
+                editor.value = value.substring(0, start) + '\n' + indent + value.substring(start);
+                editor.selectionStart = editor.selectionEnd = start + 1 + indent.length;
                 onTextChange();
             }
         }
     }
 
-    function clearCurrentFile() { if (confirm('Clear file?')) { editor.value = ''; onTextChange(); } }
-    function saveFile() {
-        let ext = document.getElementById('saveFormat').value; if (ext === 'custom') ext = prompt("Ext:", "html"); if (!ext) return;
-        let baseName = files[activeIndex].name.split('.').slice(0, -1).join('.') || files[activeIndex].name;
-        let userInput = prompt("Name:", baseName); if (!userInput) return;
-        let fullName = userInput + '.' + ext.replace(/^\./, '');
-        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-        const blob = new Blob([bom, new TextEncoder().encode(editor.value)], { type: 'text/plain;charset=utf-8' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fullName; a.click();
-        files[activeIndex].name = fullName; saveToLocalStorage(); renderTabs();
-    }
-
-    function openFile(ev) {
-        const f = ev.target.files; if (!f) return;
-        const r = new FileReader();
-        r.onload = (e) => {
-            let t; try { t = new TextDecoder('utf-8', { fatal: true }).decode(e.target.result); } catch { t = new TextDecoder('windows-1251').decode(e.target.result); }
-            files.push({ name: f.name, content: t, fontSize: 16, wrap: true, isMono: true });
-            activeIndex = files.length - 1; saveToLocalStorage(); renderTabs(); ev.target.value = '';
-        };
-        r.readAsArrayBuffer(f);
-    }
-
-    function switchTab(i) { files[activeIndex].content = editor.value; activeIndex = i; saveToLocalStorage(); renderTabs(); }
-    function newFile() { files.push({ name: 'new_' + (files.length + 1) + '.html', content: '', fontSize: 16, wrap: true, isMono: true }); activeIndex = files.length - 1; saveToLocalStorage(); renderTabs(); }
-    function closeTab(i, e) { e.stopPropagation(); files.splice(i, 1); activeIndex = Math.min(activeIndex, files.length - 1); saveToLocalStorage(); renderTabs(); }
-    function renameTab(i) { let n = prompt("Rename:", files[i].name); if (n) { files[i].name = n; saveToLocalStorage(); renderTabs(); } }
-    function insertChar(c) { editor.focus(); document.execCommand('insertText', false, c); onTextChange(); }
-    function toggleFont() { files[activeIndex].isMono = !files[activeIndex].isMono; saveToLocalStorage(); applyData(); }
-    function changeZoom(v) { files[activeIndex].fontSize = Math.max(8, files[activeIndex].fontSize + v); applyData(); saveToLocalStorage(); }
-    function toggleWrap() { files[activeIndex].wrap = !files[activeIndex].wrap; saveToLocalStorage(); applyData(); }
-    function updateStats() { const txt = editor.value; document.getElementById('statLines').innerText = txt ? txt.split('\n').length : 0; document.getElementById('statChars').innerText = txt.length; document.getElementById('statNoSpace').innerText = txt.replace(/\s/g, '').length; }
     renderTabs();
 </script>
 </body>
