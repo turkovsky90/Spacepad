@@ -25,7 +25,7 @@
         .add-tab { padding: 12px 22px; cursor: pointer; background: #2d2d2d; color: #fff; font-size: 20px; border-left: 1px solid var(--border); flex-shrink: 0; transition: background 0.2s; }
         .add-tab:hover { background: #353535; }
         .editor-container { flex: 1; position: relative; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
-        #editor { width: 100%; height: 100%; background: transparent; color: inherit; border: none; outline: none; padding: 15px; font-size: 16px; resize: none; display: block; overflow: hidden; }
+        #editor { width: 100%; height: 100%; background: transparent; color: inherit; border: none; outline: none; padding: 15px; font-size: 16px; resize: none; display: block; overflow: hidden; min-height: 100%; }
         .font-mono { font-family: 'Consolas', 'Monaco', monospace !important; }
         .font-sans { font-family: sans-serif !important; }
         .footer-controls { flex-shrink: 0; background: var(--panel); border-top: 1px solid var(--border); width: 100%; }
@@ -51,7 +51,7 @@
         <div class="tabs" id="tabsBar"></div>
         <div class="add-tab" onclick="newFile()">+</div>
     </div>
-    <div class="editor-container" id="editorWrap">
+    <div class="editor-container" id="editorWrap" onclick="handleEmptyClick(event)">
         <textarea id="editor" class="font-mono" spellcheck="false" oninput="onTextChange()" onkeydown="handleKeyDown(event)" placeholder="Spacepad..."></textarea>
         <div id="caretHelper"></div>
     </div>
@@ -116,10 +116,16 @@
         const textBefore = editor.value.substring(0, start);
         const lines = textBefore.split('\n');
         const lineHeight = parseInt(window.getComputedStyle(editor).lineHeight) || 24;
-        
-        // Ставим помощник в примерное место курсора
         helper.style.top = (lines.length * lineHeight) + 'px';
         helper.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+
+    function handleEmptyClick(e) {
+        if (e.target === wrap) {
+            editor.focus();
+            const len = editor.value.length;
+            editor.setSelectionRange(len, len);
+        }
     }
 
     if (window.visualViewport) { 
@@ -134,7 +140,9 @@
         document.getElementById('tabsOuter').classList.toggle('only-one', files.length === 1);
         files.forEach((f, i) => {
             const d = document.createElement('div'); d.className = `tab ${i === activeIndex ? 'active' : ''}`;
-            d.innerHTML = `<div class="tab-name" onclick="switchTab(${i})" ondblclick="renameTab(${i})">${f.name}</div><div class="tab-close" onclick="closeTab(${i}, event)">×</div>`;
+            let displayName = f.name;
+            if (displayName.includes('.')) displayName = displayName.substring(0, displayName.lastIndexOf('.'));
+            d.innerHTML = `<div class="tab-name" onclick="switchTab(${i})" ondblclick="renameTab(${i})">${displayName}</div><div class="tab-close" onclick="closeTab(${i}, event)">×</div>`;
             bar.appendChild(d);
         });
         const activeTab = document.querySelector('.tab.active'); if (activeTab) activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center' });
@@ -183,7 +191,10 @@
 
     function renameTab(i) {
         const newName = prompt('Имя файла:', files[i].name);
-        if (newName) { files[i].name = newName; renderTabs(); }
+        if (newName) { 
+            files[i].name = newName;
+            renderTabs(); 
+        }
     }
 
     function closeTab(i, e) {
@@ -197,12 +208,33 @@
     function saveFile() {
         const f = files[activeIndex];
         const format = document.getElementById('saveFormat').value;
-        let name = f.name;
-        if (format !== 'custom') name = name.split('.') + '.' + format;
+        
+        // Отсекаем старое расширение для подготовки предложенного имени
+        let currentBase = f.name;
+        if (currentBase.includes('.')) {
+            currentBase = currentBase.substring(0, currentBase.lastIndexOf('.'));
+        }
+        
+        // Подставляем расширение из выпадашки в окно сохранения
+        let suggestedName = format === 'custom' ? f.name : currentBase + '.' + format;
+
+        let userInput = prompt("Введите имя файла:", suggestedName);
+        if (!userInput) return;
+
+        let finalName = userInput;
+        // Если юзер стер точку и формат не кастомный — добавляем расширение из списка
+        if (!finalName.includes('.') && format !== 'custom') {
+            finalName += '.' + format;
+        }
+
+        files[activeIndex].name = finalName;
+        renderTabs();
+        saveToLocal();
+
         const blob = new Blob([editor.value], { type: 'text/plain' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = name;
+        a.download = finalName;
         a.click();
     }
 
@@ -256,14 +288,14 @@
             const lineStart = value.lastIndexOf('\n', start - 1) + 1;
             const currentLine = value.substring(lineStart, start);
             const listMatch = currentLine.match(/^(\s*)([-*+]|(\d+)\.)\s+/);
-            
-            // Фиксация текущего скролла
             const curScroll = wrap.scrollTop;
 
             if (listMatch) {
                 e.preventDefault();
-                let fullMarker = listMatch[1] + listMatch[2] + ' ';
-                if (listMatch[3]) {
+                let markerPart = listMatch[2];
+                let fullMarker = listMatch[1] + markerPart + ' ';
+                
+                if (listMatch[3]) { // Если это цифра
                     const nextNum = parseInt(listMatch[3]) + 1;
                     fullMarker = listMatch[1] + nextNum + '. ';
                 }
@@ -274,7 +306,6 @@
                 onTextChange();
             }
 
-            // Возврат скролла и плавная дотяжка
             setTimeout(() => {
                 wrap.scrollTop = curScroll;
                 scrollIntoViewFix();
