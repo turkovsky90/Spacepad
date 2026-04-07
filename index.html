@@ -34,11 +34,18 @@
         .font-sans { font-family: sans-serif !important; }
 
         .footer-controls { flex-shrink: 0; background: var(--panel); border-top: 1px solid var(--border); width: 100%; }
-        .scroll-toolbar { display: flex; overflow-x: auto; gap: 8px; padding: 10px; align-items: center; scrollbar-width: none; }
+        .scroll-toolbar { display: flex; overflow-x: auto; padding: 10px; align-items: center; scrollbar-width: none; }
         .scroll-toolbar::-webkit-scrollbar { display: none; }
         
+        .toolbar-inner { display: flex; gap: 8px; }
+        .left-side, .right-side { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
         .btn-group { display: flex; gap: 4px; padding-right: 10px; flex-shrink: 0; }
         .btn-group:last-child { padding-right: 0; }
+
+        @media (min-width: 768px) {
+            .scroll-toolbar { overflow: hidden; }
+            .toolbar-inner { width: 100%; justify-content: space-between; }
+        }
 
         button, select { height: 44px; flex: 0 0 auto; background: var(--btn); color: white; border: 1px solid var(--border); padding: 0 14px; cursor: pointer; border-radius: 6px; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
         button:hover { background: var(--btn-hover); }
@@ -62,38 +69,40 @@
 
     <div class="footer-controls">
         <div class="scroll-toolbar">
-            <div class="btn-group">
-                <button onclick="document.execCommand('undo')">↩️</button>
-                <button onclick="document.execCommand('redo')">↪️</button>
-            </div>
+            <div class="toolbar-inner">
+                <div class="left-side">
+                    <div class="btn-group">
+                        <button onclick="document.execCommand('undo')">↩️</button>
+                        <button onclick="document.execCommand('redo')">↪️</button>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="document.getElementById('fileInput').click()">📂</button>
+                        <input type="file" id="fileInput" hidden onchange="openFile(event)">
+                        <select id="saveFormat">
+                            <option value="html" selected>.html</option>
+                            <option value="txt">.txt</option>
+                            <option value="custom">...</option>
+                        </select>
+                        <button onclick="saveFile()">💾</button>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="insertChar('    ')">TAB</button>
+                    </div>
+                </div>
 
-            <div class="btn-group">
-                <button onclick="document.getElementById('fileInput').click()">📂</button>
-                <input type="file" id="fileInput" hidden onchange="openFile(event)">
-                <select id="saveFormat">
-                    <option value="html" selected>.html</option>
-                    <option value="txt">.txt</option>
-                    <option value="custom">...</option>
-                </select>
-                <button onclick="saveFile()">💾</button>
-            </div>
-
-            <div class="btn-group">
-                <button onclick="insertChar('    ')">TAB</button>
-            </div>
-
-            <div class="btn-group">
-                <button onclick="changeZoom(-2)">A-</button>
-                <button onclick="changeZoom(2)">A+</button>
-            </div>
-
-            <div class="btn-group">
-                <button onclick="toggleWrap()" id="wrapBtn">Wrap</button>
-                <button onclick="toggleFont()" id="fontBtn"><b>M</b></button>
-            </div>
-            
-            <div class="btn-group">
-                <button onclick="clearCurrentFile()">🗑️</button>
+                <div class="right-side">
+                    <div class="btn-group">
+                        <button onclick="changeZoom(-2)">A-</button>
+                        <button onclick="changeZoom(2)">A+</button>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="toggleWrap()" id="wrapBtn">Wrap</button>
+                        <button onclick="toggleFont()" id="fontBtn"><b>M</b></button>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="clearCurrentFile()">🗑️</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -119,6 +128,22 @@
         window.visualViewport.addEventListener('resize', () => { mainApp.style.height = window.visualViewport.height + 'px'; window.scrollTo(0, 0); });
     }
 
+    window.addEventListener('keydown', function(e) {
+        const ctrlOrCmd = e.ctrlKey || e.metaKey;
+        if (ctrlOrCmd) {
+            const key = e.key.toLowerCase();
+            if (['s', 'o', 'n', 'z', 'y'].includes(key)) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (key === 's') saveFile();
+                if (key === 'o') document.getElementById('fileInput').click();
+                if (key === 'n') newFile();
+                if (key === 'z') document.execCommand('undo');
+                if (key === 'y') document.execCommand('redo');
+            }
+        }
+    }, { capture: true });
+
     function renderTabs() {
         const bar = document.getElementById('tabsBar');
         bar.innerHTML = '';
@@ -126,10 +151,7 @@
         files.forEach((f, i) => {
             const d = document.createElement('div');
             d.className = `tab ${i === activeIndex ? 'active' : ''}`;
-            d.innerHTML = `
-                <div class="tab-name" onclick="switchTab(${i})" ondblclick="renameTab(${i})">${f.name}</div>
-                <div class="tab-close" onclick="closeTab(${i}, event)">×</div>
-            `;
+            d.innerHTML = `<div class="tab-name" onclick="switchTab(${i})" ondblclick="renameTab(${i})">${f.name}</div><div class="tab-close" onclick="closeTab(${i}, event)">×</div>`;
             bar.appendChild(d);
         });
         const activeTab = document.querySelector('.tab.active');
@@ -155,26 +177,38 @@
         if (e.key === 'Tab') { e.preventDefault(); insertChar('    '); }
         if (e.key === 'Enter') {
             const start = editor.selectionStart;
-            const line = editor.value.substring(0, start).split('\n').pop();
-            const listMatch = line.match(/^(\s*)(\d+\.|-)\s+/);
-            if (listMatch) {
+            const text = editor.value;
+            const lines = text.substring(0, start).split('\n');
+            const currentLine = lines[lines.length - 1];
+
+            const numMatch = currentLine.match(/^(\s*)(\d+)\.\s+/);
+            if (numMatch) {
                 e.preventDefault();
-                let nextSymbol = listMatch[2];
-                if (nextSymbol.includes('.')) nextSymbol = (parseInt(nextSymbol) + 1) + '.';
-                insertChar('\n' + listMatch[1] + nextSymbol + ' ');
+                const nextNum = parseInt(numMatch[2]) + 1;
+                insertChar('\n' + numMatch[1] + nextNum + '. ');
+                return;
+            }
+
+            const bulletMatch = currentLine.match(/^(\s*)-\s+/);
+            if (bulletMatch) {
+                e.preventDefault();
+                insertChar('\n' + bulletMatch[0]);
+                return;
             }
         }
     }
 
     function clearCurrentFile() { if (confirm('Clear file?')) { editor.value = ''; onTextChange(); } }
+    
     function saveFile() {
         let ext = document.getElementById('saveFormat').value;
         if (ext === 'custom') ext = prompt("Ext:", "html");
         if (!ext) return;
+        ext = ext.replace(/^\./, '');
         let baseName = files[activeIndex].name.split('.').slice(0, -1).join('.') || files[activeIndex].name;
         let userInput = prompt("Name:", baseName);
         if (!userInput) return;
-        let fullName = userInput + '.' + ext.replace(/^\./, '');
+        let fullName = userInput.includes('.') ? userInput : userInput + '.' + ext;
         const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
         const blob = new Blob([bom, new TextEncoder().encode(editor.value)], { type: 'text/plain;charset=utf-8' });
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fullName; a.click();
