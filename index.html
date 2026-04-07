@@ -1,15 +1,15 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Spacepad</title>
-    <!-- PWA meta -->
     <meta name="theme-color" content="#1e1e1e">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlNwYWNlcGFkIiwKICAic2hvcnRfbmFtZSI6ICJTcGFjZXBhZCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMWUxZTFlIiwKICAidGhlbWVfY29sb3IiOiAiIzFlMWUxZSIsCiAgImljb25zIjogW3sgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi8yOTkxLzI5OTE5OTAucG5nIiwgInR5cGUiOiAiaW1hZ2UvcG5nIiwgInNpemVzIjogIjUxMng1MTIiIH1dCn0=">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlNwYWNlcGFkIiwKICAic2hvcnRfbmFtZSI6ICJTcGFjZXBhZCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMWUxZTFlIiwKICAidGhlbWVfY29sb3IiOiAiIzFlMWUxZSIsCiAgImljb25zIjogW3sgInNyYyI6ICJpY29uLnBuZyIsICJ0eXBlIjogImltYWdlL3BuZyIsICJzaXplcyI6ICI1MTJ4NTEyIn0sIHsgInNyYyI6ICJpY29uLnBuZyIsICJ0eXBlIjogImltYWdlL3BuZyIsICJzaXplcyI6ICIxOTJ4MTkyIn1dCn0=">
+    <link rel="apple-touch-icon" href="icon.png">
     
     <style>
-        :root { --bg: #1e1e1e; --panel: #2d2d2d; --text: #d4d4d4; --accent: #007acc; --border: #444; --btn: #3c3c3c; --modified: #ff9800; }
+        :root { --bg: #1e1e1e; --panel: #2d2d2d; --text: #d4d4d4; --accent: #007acc; --border: #444; --btn: #3c3c3c; }
         * { box-sizing: border-box; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: var(--bg); color: var(--text); overflow: hidden; position: fixed; font-family: sans-serif; }
         .container { display: flex; flex-direction: column; height: 100vh; width: 100%; position: absolute; top: 0; left: 0; }
@@ -20,9 +20,6 @@
         .tab { padding: 12px 18px; cursor: pointer; border-right: 1px solid var(--border); display: flex; align-items: center; gap: 8px; white-space: nowrap; background: #2d2d2d; font-size: 14px; color: #888; position: relative; max-width: 180px; }
         .tab-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
         .tab.active { background: var(--bg); border-top: 3px solid var(--accent); color: #fff; }
-        
-        .dot { width: 6px; height: 6px; background: var(--modified); border-radius: 50%; display: inline-block; opacity: 0; transition: 0.3s; flex-shrink: 0; }
-        .modified .dot { opacity: 1; }
         .add-tab { padding: 12px 22px; cursor: pointer; background: #2d2d2d; color: #888; font-size: 20px; border-left: 1px solid var(--border); flex-shrink: 0; }
 
         .editor-container { flex: 1; position: relative; overflow: hidden; }
@@ -40,8 +37,6 @@
 
         button, select { height: 44px; flex: 0 0 auto; background: var(--btn); color: white; border: 1px solid var(--border); padding: 0 14px; cursor: pointer; border-radius: 6px; font-size: 14px; display: flex; align-items: center; justify-content: center; position: relative; }
         .active-btn { background: var(--accent) !important; border-color: #0090f0 !important; }
-        .save-dot { position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; background: var(--modified); border-radius: 50%; display: none; }
-        .modified-save .save-dot { display: block; }
 
         .status-bar { background: #333; color: #aaa; padding: 6px 12px; font-size: 11px; display: flex; gap: 15px; font-family: sans-serif; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
     </style>
@@ -55,7 +50,7 @@
     </div>
 
     <div class="editor-container">
-        <textarea id="editor" class="font-mono" spellcheck="false" oninput="onTextChange()" onkeydown="handleKeydown(event)" placeholder="Spacepad..."></textarea>
+        <textarea id="editor" class="font-mono" spellcheck="false" oninput="onTextChange()" placeholder="Spacepad..."></textarea>
     </div>
 
     <div class="footer-controls">
@@ -63,7 +58,7 @@
             <button onclick="insertChar('    ')">TAB</button>
             <button onclick="insertChar('{')">{</button><button onclick="insertChar('}')">}</button>
             <button onclick="insertChar('[')">[</button><button onclick="insertChar(']')">]</button>
-            <button onclick="insertChar('(')">(</button><button onclick="insertChar(')')">)</button>
+            <button onclick="insertChar('Validar(')">(</button><button onclick="insertChar(')')">)</button>
             <button onclick="insertChar(';')">;</button>
         </div>
 
@@ -77,11 +72,11 @@
                 <button onclick="document.getElementById('fileInput').click()">📂</button>
                 <input type="file" id="fileInput" hidden onchange="openFile(event)">
                 <select id="saveFormat">
-                    <option value="html">.html</option>
                     <option value="txt">.txt</option>
+                    <option value="html">.html</option>
                     <option value="custom">...</option>
                 </select>
-                <button onclick="saveFile()" id="saveBtn">💾 <div class="save-dot"></div></button>
+                <button onclick="saveFile()" id="saveBtn">💾</button>
             </div>
 
             <div class="btn-group">
@@ -96,10 +91,6 @@
             <div class="btn-group">
                 <button onclick="toggleWrap()" id="wrapBtn">Wrap</button>
                 <button onclick="toggleFont()" id="fontBtn"><b>M</b></button>
-            </div>
-
-            <div class="btn-group">
-                <button onclick="clearCurrentText()">🗑️</button>
             </div>
         </div>
 
@@ -116,8 +107,12 @@
         navigator.serviceWorker.register('data:text/javascript;base64,' + btoa('self.addEventListener("fetch", (e) => {});'));
     }
 
-    let files = [{ name: 'untitled.html', content: '', savedContent: '', fontSize: 16, wrap: true, isMono: true }];
-    let activeIndex = 0;
+    // Загрузка данных из памяти или создание дефолтных
+    let files = JSON.parse(localStorage.getItem('spacepad_files')) || [{ name: 'untitled.txt', content: '', fontSize: 16, wrap: true, isMono: true }];
+    let activeIndex = parseInt(localStorage.getItem('spacepad_active')) || 0;
+    
+    if (activeIndex >= files.length) activeIndex = 0;
+
     const editor = document.getElementById('editor');
     const mainApp = document.getElementById('mainApp');
 
@@ -128,48 +123,16 @@
         });
     }
 
-    function handleKeydown(e) {
-        if (e.key === 'Enter') {
-            const start = editor.selectionStart;
-            const textBefore = editor.value.substring(0, start);
-            const lines = textBefore.split('\n');
-            const lastLine = lines[lines.length - 1];
-
-            if (lastLine.startsWith('- ')) {
-                if (lastLine.trim() === '-') return;
-                e.preventDefault();
-                insertChar('\n- ');
-                return;
-            }
-
-            const numMatch = lastLine.match(/^(\d+)\.\s/);
-            if (numMatch) {
-                if (lastLine.trim() === numMatch + '.') return;
-                e.preventDefault();
-                const nextNum = parseInt(numMatch) + 1;
-                insertChar('\n' + nextNum + '. ');
-                return;
-            }
-        }
-    }
-
     function renderTabs() {
         const bar = document.getElementById('tabsBar');
         bar.innerHTML = '';
-        const showClose = files.length > 1;
-        
         files.forEach((f, i) => {
-            const isModified = f.content !== f.savedContent;
             const d = document.createElement('div');
             d.id = `tab-${i}`;
-            d.className = `tab ${i === activeIndex ? 'active' : ''} ${isModified ? 'modified' : ''}`;
-            
-            let closeBtn = showClose ? `<span onclick="closeTab(${i}, event)" style="margin-left:8px; font-size:18px">×</span>` : '';
-            
+            d.className = `tab ${i === activeIndex ? 'active' : ''}`;
             d.innerHTML = `
-                <span class="dot"></span>
                 <span class="tab-name" onclick="switchTab(${i})" ondblclick="renameTab(${i})">${f.name}</span>
-                ${closeBtn}
+                <span onclick="closeTab(${i}, event)" style="margin-left:8px; font-size:18px">×</span>
             `;
             bar.appendChild(d);
         });
@@ -186,31 +149,26 @@
         editor.className = f.isMono ? 'font-mono' : 'font-sans';
         document.getElementById('fontBtn').classList.toggle('active-btn', f.isMono);
         document.getElementById('wrapBtn').classList.toggle('active-btn', f.wrap);
-        checkModified();
         updateStats();
     }
 
     function onTextChange() {
         files[activeIndex].content = editor.value;
-        checkModified();
+        saveToLocalStorage();
         updateStats();
     }
 
-    function checkModified() {
-        const isModified = files[activeIndex].content !== files[activeIndex].savedContent;
-        const currentTab = document.getElementById(`tab-${activeIndex}`);
-        if (currentTab) currentTab.classList.toggle('modified', isModified);
-        document.getElementById('saveBtn').classList.toggle('modified-save', isModified);
+    function saveToLocalStorage() {
+        localStorage.setItem('spacepad_files', JSON.stringify(files));
+        localStorage.setItem('spacepad_active', activeIndex);
     }
 
     function saveFile() {
         let ext = document.getElementById('saveFormat').value;
-        if (ext === 'custom') ext = prompt("Расширение:", "html");
+        if (ext === 'custom') ext = prompt("Расширение:", "txt");
         if (!ext) return;
         ext = ext.replace(/^\./, '');
-        let currentName = files[activeIndex].name;
-        let lastDot = currentName.lastIndexOf('.');
-        let baseName = lastDot > 0 ? currentName.substring(0, lastDot) : currentName;
+        let baseName = files[activeIndex].name.substring(0, files[activeIndex].name.lastIndexOf('.')) || files[activeIndex].name;
         let userInput = prompt("Имя файла:", baseName);
         if (!userInput) return;
         let fullName = userInput.includes('.') ? userInput : `${userInput}.${ext}`;
@@ -222,7 +180,7 @@
         a.download = fullName;
         a.click();
         files[activeIndex].name = fullName;
-        files[activeIndex].savedContent = editor.value;
+        saveToLocalStorage();
         renderTabs();
     }
 
@@ -234,45 +192,48 @@
             const buffer = e.target.result;
             let text;
             try {
-                const decoder = new TextDecoder('utf-8', { fatal: true });
-                text = decoder.decode(buffer);
+                text = new TextDecoder('utf-8', { fatal: true }).decode(buffer);
             } catch {
-                const decoderANSI = new TextDecoder('windows-1251');
-                text = decoderANSI.decode(buffer);
+                text = new TextDecoder('windows-1251').decode(buffer);
             }
-            files.push({ name: f.name, content: text, savedContent: text, fontSize: 16, wrap: true, isMono: true });
+            files.push({ name: f[0].name, content: text, fontSize: 16, wrap: true, isMono: true });
             activeIndex = files.length - 1;
+            saveToLocalStorage();
             renderTabs();
             ev.target.value = '';
         };
-        r.readAsArrayBuffer(f);
+        r.readAsArrayBuffer(f[0]);
     }
 
     function switchTab(i) {
         files[activeIndex].content = editor.value;
         activeIndex = i;
+        saveToLocalStorage();
         renderTabs();
     }
 
     function newFile() {
-        files.push({ name: 'new_' + (files.length + 1) + '.html', content: '', savedContent: '', fontSize: 16, wrap: true, isMono: true });
+        files.push({ name: 'new_' + (files.length + 1) + '.txt', content: '', fontSize: 16, wrap: true, isMono: true });
         activeIndex = files.length - 1;
+        saveToLocalStorage();
         renderTabs();
     }
 
     function closeTab(i, e) {
         e.stopPropagation();
-        if (files[i].content !== files[i].savedContent && !confirm('Не сохранено. Закрыть?')) return;
-        if (files.length > 1) {
+        if (files.length === 1) {
+            files = [{ name: 'untitled.txt', content: '', fontSize: 16, wrap: true, isMono: true }];
+        } else {
             files.splice(i, 1);
             activeIndex = Math.min(activeIndex, files.length - 1);
-            renderTabs();
         }
+        saveToLocalStorage();
+        renderTabs();
     }
 
     function renameTab(i) {
         let n = prompt("Переименовать:", files[i].name);
-        if (n) { files[i].name = n; renderTabs(); }
+        if (n) { files[i].name = n; saveToLocalStorage(); renderTabs(); }
     }
 
     function insertChar(c) {
@@ -290,24 +251,20 @@
 
     function toggleFont() {
         files[activeIndex].isMono = !files[activeIndex].isMono;
+        saveToLocalStorage();
         applyData();
     }
 
     function changeZoom(v) {
         files[activeIndex].fontSize = Math.max(8, files[activeIndex].fontSize + v);
         editor.style.fontSize = files[activeIndex].fontSize + 'px';
+        saveToLocalStorage();
     }
 
     function toggleWrap() {
         files[activeIndex].wrap = !files[activeIndex].wrap;
+        saveToLocalStorage();
         applyData();
-    }
-
-    function clearCurrentText() {
-        if (confirm('Очистить текущую вкладку?')) {
-            editor.value = '';
-            onTextChange();
-        }
     }
 
     function updateStats() {
