@@ -101,9 +101,11 @@
     if ('serviceWorker' in navigator) { 
         navigator.serviceWorker.register('data:text/javascript;base64,' + btoa('self.addEventListener("fetch", (e) => {});'));
     }
-    let files = JSON.parse(localStorage.getItem('spacepad_files')) || [{ name: 'untitled.html', content: '', fontSize: 16, wrap: true, isMono: true }];
-    let activeIndex = parseInt(localStorage.getItem('spacepad_active')) || 0;
-    if (activeIndex >= files.length) activeIndex = 0;
+    let files = JSON.parse(localStorage.getItem('ваше_имя_ключа')) || [];
+    let activeIndex = parseInt(localStorage.getItem('ваш_индекс')) || 0;
+    if (files.length === 0) {
+    // Тут можно добавить логику создания первого пустого файла, если данных нет
+}
     const editor = document.getElementById('editor');
     const wrap = document.getElementById('editorWrap');
     const helper = document.getElementById('caretHelper');
