@@ -11,8 +11,8 @@
         :root { --bg: #1e1e1e; --panel: #2d2d2d; --text: #d4d4d4; --accent: #007acc; --accent-hover: #0090f0; --border: #444; --btn: #3c3c3c; --btn-hover: #4a4a4a; }
         * { box-sizing: border-box; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: var(--bg); color: var(--text); overflow: hidden; position: fixed; font-family: sans-serif; }
-        .container { display: flex; flex-direction: column; height: 100vh; width: 100%; position: absolute; top: 0; left: 0; }
-        .tabs-container { display: flex; background: #252526; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .container { display: flex; flex-direction: column; height: 100vh; width: 100%; position: relative; }
+        .tabs-container { display: flex; background: #252526; border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 10; }
         .tabs { display: flex; overflow-x: auto; flex: 1; scrollbar-width: none; scroll-behavior: smooth; }
         .tabs::-webkit-scrollbar { display: none; }
         .tab { display: flex; align-items: stretch; cursor: pointer; border-right: 1px solid var(--border); background: #2d2d2d; font-size: 14px; color: #888; max-width: 180px; transition: background 0.2s; }
@@ -31,13 +31,34 @@
         .dropdown-item { padding: 10px 16px; cursor: pointer; font-size: 13px; color: var(--text); transition: background 0.2s; white-space: nowrap; font-family: sans-serif; }
         .dropdown-item:hover { background: #3c3c3c; }
         .dropdown-divider { height: 1px; background: var(--border); margin: 4px 0; }
-        .editor-container { flex: 1; position: relative; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
-        #editor { width: 100%; height: 100%; background: transparent; color: inherit; border: none; outline: none; padding: 15px; font-size: 16px; resize: none; display: block; overflow: hidden; min-height: 100%; }
+        
+        /* Обертка для редактора и плавающей панели */
+        .editor-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        #editor { 
+            width: 100%; 
+            height: 100%; 
+            background: var(--bg); 
+            color: inherit; 
+            border: none; 
+            outline: none; 
+            padding: 15px; 
+            font-size: 16px; 
+            resize: none; 
+            display: block;
+            font-family: 'Consolas', 'Monaco', monospace;
+            overflow: auto;
+        }
         .font-mono { font-family: 'Consolas', 'Monaco', monospace !important; }
         .font-sans { font-family: sans-serif !important; }
+        
+        /* Панель с кнопками — absolute внутри editor-wrapper, будет подниматься при сжатии контейнера */
         .floating-tab-panel {
-            position: fixed;
-            bottom: 36px;
+            position: absolute;
+            bottom: 16px;
             left: 12px;
             z-index: 20;
             background: rgba(45, 45, 45, 0.95);
@@ -75,8 +96,21 @@
             min-width: auto;
             padding-bottom: 0;
         }
-        .footer-controls { flex-shrink: 0; background: var(--panel); border-top: 1px solid var(--border); width: 100%; }
-        .stats-bar { background: #2a2a2a; color: #aaa; padding: 6px 12px; font-size: 11px; display: flex; gap: 20px; font-family: sans-serif; overflow-x: auto; white-space: nowrap; border-top: 1px solid var(--border); flex-shrink: 0; width: 100%; }
+        
+        .stats-bar { 
+            background: #2a2a2a; 
+            color: #aaa; 
+            padding: 6px 12px; 
+            font-size: 11px; 
+            display: flex; 
+            gap: 20px; 
+            font-family: sans-serif;
+            overflow-x: auto; 
+            white-space: nowrap; 
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+            width: 100%;
+        }
         .stats-bar b { color: #ddd; }
         #caretHelper { position: absolute; width: 1px; height: 1px; pointer-events: none; opacity: 0; }
     </style>
@@ -103,15 +137,17 @@
         <div class="dropdown-divider"></div>
         <div class="dropdown-item" id="menuClear">Clear current</div>
     </div>
-    <div class="editor-container" id="editorWrap" onclick="handleEmptyClick(event)">
+    
+    <div class="editor-wrapper">
         <textarea id="editor" class="font-mono" spellcheck="false" oninput="onTextChange()" onkeydown="handleKeyDown(event)" placeholder="Spacepad..."></textarea>
+        <div class="floating-tab-panel">
+            <button onclick="saveFile()" class="save-btn">💾 Save</button>
+            <button onclick="shiftLine(false)" title="Tab left">⇤</button>
+            <button onclick="shiftLine(true)" title="Tab right">⇥</button>
+        </div>
         <div id="caretHelper"></div>
     </div>
-    <div class="floating-tab-panel">
-        <button onclick="saveFile()" class="save-btn">💾 Save</button>
-        <button onclick="shiftLine(false)" title="Tab left">⇤</button>
-        <button onclick="shiftLine(true)" title="Tab right">⇥</button>
-    </div>
+    
     <div class="stats-bar">
         <span>Lines: <b id="statLines">1</b></span>
         <span>Chars: <b id="statChars">0</b></span>
@@ -126,7 +162,7 @@
     let activeIndex = parseInt(localStorage.getItem('spacepad_active')) || 0;
     if (activeIndex >= files.length) activeIndex = 0;
     const editor = document.getElementById('editor');
-    const wrap = document.getElementById('editorWrap');
+    const wrapper = document.querySelector('.editor-wrapper');
     const helper = document.getElementById('caretHelper');
     const mainApp = document.getElementById('mainApp');
     const menuDotsBtn = document.getElementById('menuDotsBtn');
@@ -211,8 +247,7 @@
         closeDropdown();
     });
     function syncHeight() {
-        editor.style.height = 'auto';
-        editor.style.height = editor.scrollHeight + 'px';
+        // не нужно
     }
     function scrollIntoViewFix() {
         const start = editor.selectionStart;
@@ -223,7 +258,7 @@
         helper.scrollIntoView({ block: "nearest", behavior: "smooth" });
     }
     function handleEmptyClick(e) {
-        if (e.target === wrap) {
+        if (e.target === wrapper) {
             editor.focus();
             const len = editor.value.length;
             editor.setSelectionRange(len, len);
@@ -262,14 +297,12 @@
         editor.style.fontSize = f.fontSize + 'px';
         editor.style.whiteSpace = f.wrap ? 'pre-wrap' : 'pre';
         editor.className = f.isMono ? 'font-mono' : 'font-sans';
-        syncHeight();
         updateStats();
         saveToLocal();
         updateDropdownLabels();
     }
     function onTextChange() {
         files[activeIndex].content = editor.value;
-        syncHeight();
         updateStats();
         saveToLocal();
     }
@@ -375,7 +408,7 @@
             const lineStart = value.lastIndexOf('\n', start - 1) + 1;
             const currentLine = value.substring(lineStart, start);
             const listMatch = currentLine.match(/^(\s*)([-*+]|(\d+)\.)\s+/);
-            const curScroll = wrap.scrollTop;
+            const curScroll = wrapper.scrollTop;
             if (listMatch) {
                 e.preventDefault();
                 let markerPart = listMatch[2];
@@ -390,7 +423,7 @@
                 onTextChange();
             }
             setTimeout(() => {
-                wrap.scrollTop = curScroll;
+                wrapper.scrollTop = curScroll;
                 scrollIntoViewFix();
             }, 0);
         }
