@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Spacepad</title>
     <meta name="theme-color" content="#1e1e1e">
-    <!-- ИСПРАВЛЕНО: теперь иконка ведёт на реальный существующий файл -->
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlNwYWNlcGFkIiwKICAic2hvcnRfbmFtZSI6ICJTcGFjZXBhZCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMWUxZTFlIiwKICAidGhlbWVfY29sb3IiOiAiIzFlMWUxZSIsCiAgImljb25zIjogW3sgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi8yOTkxLzI5OTE5OTAucG5nIiwgInR5cGUiOiAiaW1hZ2UvcG5nIiwgInNpemVzIjogIjUxMng1MTIiIH1dCn0=">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2991/2991990.png">
     <style>
@@ -25,25 +24,118 @@
         .only-one .tab-close { display: none; }
         .add-tab { padding: 12px 22px; cursor: pointer; background: #2d2d2d; color: #fff; font-size: 20px; border-left: 1px solid var(--border); flex-shrink: 0; transition: background 0.2s; }
         .add-tab:hover { background: #353535; }
+        
+        .menu-dots { 
+            padding: 12px 22px; 
+            cursor: pointer; 
+            background: #2d2d2d; 
+            color: #fff; 
+            font-size: 20px; 
+            border-left: 1px solid var(--border); 
+            flex-shrink: 0; 
+            transition: background 0.2s; 
+            font-weight: bold; 
+            line-height: 1; 
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 14px;
+        }
+        .menu-dots:hover { background: #353535; }
+        
+        .dropdown-menu { 
+            position: fixed; 
+            background: #252526; 
+            border: 1px solid var(--border); 
+            border-radius: 6px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4); 
+            z-index: 1000; 
+            min-width: 160px; 
+            display: none; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
+        .dropdown-menu.show { display: flex; }
+        .dropdown-item { 
+            padding: 10px 16px; 
+            cursor: pointer; 
+            font-size: 13px; 
+            color: var(--text); 
+            transition: background 0.2s; 
+            white-space: nowrap; 
+            font-family: sans-serif;
+        }
+        .dropdown-item:hover { background: #3c3c3c; }
+        .dropdown-divider { height: 1px; background: var(--border); margin: 4px 0; }
+        
         .editor-container { flex: 1; position: relative; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
         #editor { width: 100%; height: 100%; background: transparent; color: inherit; border: none; outline: none; padding: 15px; font-size: 16px; resize: none; display: block; overflow: hidden; min-height: 100%; }
         .font-mono { font-family: 'Consolas', 'Monaco', monospace !important; }
         .font-sans { font-family: sans-serif !important; }
-        .footer-controls { flex-shrink: 0; background: var(--panel); border-top: 1px solid var(--border); width: 100%; }
-        .scroll-toolbar { display: flex; overflow-x: auto; gap: 8px; padding: 10px; align-items: center; scrollbar-width: none; }
-        .scroll-toolbar::-webkit-scrollbar { display: none; }
-        .btn-group { display: flex; gap: 4px; padding-right: 10px; flex-shrink: 0; }
-        button, select { height: 44px; flex: 0 0 auto; background: var(--btn); color: white; border: 1px solid var(--border); padding: 0 14px; cursor: pointer; border-radius: 6px; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: background 0.2s, border-color 0.2s; }
-        button:hover, select:hover { background: var(--btn-hover); }
-        .active-btn { background: var(--accent) !important; border-color: #0090f0 !important; }
-        .active-btn:hover { background: var(--accent-hover) !important; }
-        .status-bar { background: #333; color: #aaa; padding: 6px 12px; font-size: 11px; display: flex; gap: 15px; font-family: sans-serif; overflow-x: auto; white-space: nowrap; }
-        .status-bar b { color: #ddd; }
-        #caretHelper { position: absolute; width: 1px; height: 1px; pointer-events: none; opacity: 0; }
-        @media (min-width: 768px) {
-            .scroll-toolbar { display: flex; justify-content: space-between; overflow: hidden; }
-            .right-aligned { display: flex; margin-left: auto; }
+        
+        .footer-controls { 
+            flex-shrink: 0; 
+            background: var(--panel); 
+            border-top: 1px solid var(--border); 
+            width: auto;
+            display: inline-block;
+            margin: 0 8px 8px 8px;
+            border-radius: 10px;
+            overflow: hidden;
+            align-self: flex-start;
         }
+        .scroll-toolbar { 
+            display: flex; 
+            gap: 8px; 
+            padding: 8px 10px; 
+            align-items: center; 
+        }
+        .btn-group { display: flex; gap: 4px; flex-shrink: 0; }
+        button { 
+            height: 40px; 
+            flex: 0 0 auto; 
+            background: var(--btn); 
+            color: white; 
+            border: 1px solid var(--border); 
+            padding: 0 16px; 
+            cursor: pointer; 
+            border-radius: 6px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: background 0.2s, border-color 0.2s; 
+        }
+        .tab-btn {
+            font-size: 20px;
+            font-weight: normal;
+            padding: 0 12px;
+            line-height: 1;
+            padding-bottom: 4px;
+        }
+        .save-btn {
+            font-size: 13px;
+            font-weight: normal;
+            gap: 4px;
+        }
+        button:hover { background: var(--btn-hover); }
+        
+        .stats-bar { 
+            background: #2a2a2a; 
+            color: #aaa; 
+            padding: 6px 12px; 
+            font-size: 11px; 
+            display: flex; 
+            gap: 20px; 
+            font-family: sans-serif;
+            overflow-x: auto; 
+            white-space: nowrap; 
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+            width: 100%;
+        }
+        .stats-bar b { color: #ddd; }
+        #caretHelper { position: absolute; width: 1px; height: 1px; pointer-events: none; opacity: 0; }
     </style>
 </head>
 <body>
@@ -51,56 +143,59 @@
     <div class="tabs-container" id="tabsOuter">
         <div class="tabs" id="tabsBar"></div>
         <div class="add-tab" onclick="newFile()">+</div>
+        <div class="menu-dots" id="menuDotsBtn">⋮</div>
     </div>
+    
+    <div class="dropdown-menu" id="dropdownMenu">
+        <div class="dropdown-item" id="menuUndo">Undo</div>
+        <div class="dropdown-item" id="menuRedo">Redo</div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item" id="menuOpen">Open file</div>
+        <div class="dropdown-item" id="menuSave">Save</div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item" id="menuZoomOut">Zoom out</div>
+        <div class="dropdown-item" id="menuZoomIn">Zoom in</div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item" id="menuWrap">Wrap: <span id="wrapLabel">On</span></div>
+        <div class="dropdown-item" id="menuFont">Font: <span id="fontLabel">Mono</span></div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item" id="menuClear">Clear current</div>
+    </div>
+    
     <div class="editor-container" id="editorWrap" onclick="handleEmptyClick(event)">
         <textarea id="editor" class="font-mono" spellcheck="false" oninput="onTextChange()" onkeydown="handleKeyDown(event)" placeholder="Spacepad..."></textarea>
         <div id="caretHelper"></div>
     </div>
+    
     <div class="footer-controls">
         <div class="scroll-toolbar">
             <div class="btn-group">
-                <button onclick="document.execCommand('undo')">↩️</button>
-                <button onclick="document.execCommand('redo')">↪️</button>
+                <button onclick="saveFile()" class="save-btn">💾 Save</button>
             </div>
             <div class="btn-group">
-                <button onclick="document.getElementById('fileInput').click()">📂</button>
-                <input type="file" id="fileInput" hidden onchange="openFile(event)">
-                <select id="saveFormat">
-                    <option value="html" selected>.html</option>
-                    <option value="txt">.txt</option>
-                    <option value="custom">...</option>
-                </select>
-                <button onclick="saveFile()">💾</button>
+                <button onclick="shiftLine(false)" class="tab-btn" title="Tab left">⇤</button>
+                <button onclick="shiftLine(true)" class="tab-btn" title="Tab right">⇥</button>
             </div>
-            <div class="btn-group">
-                <button onclick="shiftLine(false)">⇤</button>
-                <button onclick="shiftLine(true)">⇥</button>
-            </div>
-            <div class="right-aligned btn-group">
-                <div class="btn-group">
-                    <button onclick="changeZoom(-2)">A-</button>
-                    <button onclick="changeZoom(2)">A+</button>
-                </div>
-                <div class="btn-group">
-                    <button onclick="toggleWrap()" id="wrapBtn">Wrap</button>
-                    <button onclick="toggleFont()" id="fontBtn"><b>M</b></button>
-                </div>
-                <div class="btn-group">
-                    <button onclick="clearCurrentFile()">🗑️</button>
-                </div>
-            </div>
-        </div>
-        <div class="status-bar">
-            <span>Lines: <b id="statLines">1</b></span>
-            <span>Chars: <b id="statChars">0</b></span>
-            <span>No spaces: <b id="statNoSpace">0</b></span>
         </div>
     </div>
+    
+    <div class="stats-bar">
+        <span>Lines: <b id="statLines">1</b></span>
+        <span>Chars: <b id="statChars">0</b></span>
+        <span>No spaces: <b id="statNoSpace">0</b></span>
+    </div>
 </div>
+
 <script>
-    if ('serviceWorker' in navigator) { 
-        navigator.serviceWorker.register('data:text/javascript;base64,' + btoa('self.addEventListener("fetch", (e) => {});'));
+    // Регистрируем рабочий сервис-воркер (как в изначальной версии)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('data:text/javascript;base64,' + btoa('self.addEventListener("fetch", (e) => {});')).then(function(registration) {
+            console.log('ServiceWorker registration successful');
+        }).catch(function(err) {
+            console.log('ServiceWorker registration failed: ', err);
+        });
     }
+    
     let files = JSON.parse(localStorage.getItem('spacepad_files')) || [{ name: 'untitled.html', content: '', fontSize: 16, wrap: true, isMono: true }];
     let activeIndex = parseInt(localStorage.getItem('spacepad_active')) || 0;
     if (activeIndex >= files.length) activeIndex = 0;
@@ -108,12 +203,101 @@
     const wrap = document.getElementById('editorWrap');
     const helper = document.getElementById('caretHelper');
     const mainApp = document.getElementById('mainApp');
-
+    
+    const menuDotsBtn = document.getElementById('menuDotsBtn');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    let menuOpen = false;
+    
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.hidden = true;
+    fileInput.onchange = (e) => openFile(e);
+    document.body.appendChild(fileInput);
+    
+    function closeDropdown() {
+        dropdownMenu.classList.remove('show');
+        menuOpen = false;
+    }
+    
+    function toggleDropdown(e) {
+        e.stopPropagation();
+        if (menuOpen) {
+            closeDropdown();
+        } else {
+            const rect = menuDotsBtn.getBoundingClientRect();
+            dropdownMenu.style.top = (rect.bottom + 4) + 'px';
+            dropdownMenu.style.right = (window.innerWidth - rect.right) + 'px';
+            dropdownMenu.classList.add('show');
+            menuOpen = true;
+            updateDropdownLabels();
+        }
+    }
+    
+    function updateDropdownLabels() {
+        const f = files[activeIndex];
+        document.getElementById('wrapLabel').innerText = f.wrap ? 'On' : 'Off';
+        document.getElementById('fontLabel').innerText = f.isMono ? 'Mono' : 'Sans';
+    }
+    
+    document.addEventListener('click', function(e) {
+        if (menuOpen && !dropdownMenu.contains(e.target) && e.target !== menuDotsBtn) {
+            closeDropdown();
+        }
+    });
+    
+    menuDotsBtn.addEventListener('click', toggleDropdown);
+    
+    document.getElementById('menuUndo').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.execCommand('undo');
+    });
+    document.getElementById('menuRedo').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.execCommand('redo');
+    });
+    document.getElementById('menuZoomOut').addEventListener('click', (e) => {
+        e.stopPropagation();
+        changeZoom(-2);
+        updateDropdownLabels();
+    });
+    document.getElementById('menuZoomIn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        changeZoom(2);
+        updateDropdownLabels();
+    });
+    document.getElementById('menuOpen').addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.click();
+        closeDropdown();
+    });
+    document.getElementById('menuSave').addEventListener('click', (e) => {
+        e.stopPropagation();
+        saveFile();
+        closeDropdown();
+    });
+    document.getElementById('menuWrap').addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleWrap();
+        updateDropdownLabels();
+        closeDropdown();
+    });
+    document.getElementById('menuFont').addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFont();
+        updateDropdownLabels();
+        closeDropdown();
+    });
+    document.getElementById('menuClear').addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearCurrentFile();
+        closeDropdown();
+    });
+    
     function syncHeight() {
         editor.style.height = 'auto';
         editor.style.height = editor.scrollHeight + 'px';
     }
-
+    
     function scrollIntoViewFix() {
         const start = editor.selectionStart;
         const textBefore = editor.value.substring(0, start);
@@ -122,7 +306,7 @@
         helper.style.top = (lines.length * lineHeight) + 'px';
         helper.scrollIntoView({ block: "nearest", behavior: "smooth" });
     }
-
+    
     function handleEmptyClick(e) {
         if (e.target === wrap) {
             editor.focus();
@@ -130,14 +314,14 @@
             editor.setSelectionRange(len, len);
         }
     }
-
+    
     if (window.visualViewport) { 
         window.visualViewport.addEventListener('resize', () => { 
             mainApp.style.height = window.visualViewport.height + 'px'; 
             window.scrollTo(0, 0); 
         }); 
     }
-
+    
     function renderTabs() {
         const bar = document.getElementById('tabsBar'); bar.innerHTML = '';
         document.getElementById('tabsOuter').classList.toggle('only-one', files.length === 1);
@@ -145,98 +329,102 @@
             const d = document.createElement('div'); d.className = `tab ${i === activeIndex ? 'active' : ''}`;
             let displayName = f.name;
             if (displayName.includes('.')) displayName = displayName.substring(0, displayName.lastIndexOf('.'));
-            d.innerHTML = `<div class="tab-name" onclick="switchTab(${i})" ondblclick="renameTab(${i})">${displayName}</div><div class="tab-close" onclick="closeTab(${i}, event)">×</div>`;
+            d.innerHTML = `<div class="tab-name" onclick="switchTab(${i})" ondblclick="renameTab(${i})">${escapeHtml(displayName)}</div><div class="tab-close" onclick="closeTab(${i}, event)">×</div>`;
             bar.appendChild(d);
         });
         const activeTab = document.querySelector('.tab.active'); if (activeTab) activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center' });
         applyData();
     }
-
+    
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
     function applyData() {
         const f = files[activeIndex];
         editor.value = f.content || '';
         editor.style.fontSize = f.fontSize + 'px';
         editor.style.whiteSpace = f.wrap ? 'pre-wrap' : 'pre';
         editor.className = f.isMono ? 'font-mono' : 'font-sans';
-        document.getElementById('wrapBtn').classList.toggle('active-btn', f.wrap);
-        document.getElementById('fontBtn').classList.toggle('active-btn', f.isMono);
         syncHeight();
         updateStats();
         saveToLocal();
+        updateDropdownLabels();
     }
-
+    
     function onTextChange() {
         files[activeIndex].content = editor.value;
         syncHeight();
         updateStats();
         saveToLocal();
     }
-
+    
     function updateStats() {
         const text = editor.value;
         document.getElementById('statLines').innerText = text.split('\n').length;
         document.getElementById('statChars').innerText = text.length;
         document.getElementById('statNoSpace').innerText = text.replace(/\s/g, '').length;
     }
-
+    
     function saveToLocal() {
         localStorage.setItem('spacepad_files', JSON.stringify(files));
         localStorage.setItem('spacepad_active', activeIndex);
     }
-
-    function switchTab(i) { activeIndex = i; renderTabs(); }
-
+    
+    function switchTab(i) { activeIndex = i; renderTabs(); closeDropdown(); }
+    
     function newFile() {
         files.push({ name: 'untitled.html', content: '', fontSize: 16, wrap: true, isMono: true });
         activeIndex = files.length - 1;
         renderTabs();
+        closeDropdown();
     }
-
+    
     function renameTab(i) {
-        const newName = prompt('Имя файла:', files[i].name);
+        const newName = prompt('File name:', files[i].name);
         if (newName) { 
             files[i].name = newName;
             renderTabs(); 
         }
+        closeDropdown();
     }
-
+    
     function closeTab(i, e) {
         e.stopPropagation();
         if (files.length === 1) return;
         files.splice(i, 1);
         if (activeIndex >= files.length) activeIndex = files.length - 1;
         renderTabs();
+        closeDropdown();
     }
-
+    
     function saveFile() {
         const f = files[activeIndex];
-        const format = document.getElementById('saveFormat').value;
-        
-        let currentBase = f.name;
-        if (currentBase.includes('.')) {
-            currentBase = currentBase.substring(0, currentBase.lastIndexOf('.'));
-        }
-        
-        let suggestedName = format === 'custom' ? f.name : currentBase + '.' + format;
-        let userInput = prompt("Введите имя файла:", suggestedName);
+        let suggestedName = f.name;
+        let userInput = prompt("Enter file name:", suggestedName);
         if (!userInput) return;
-
+        
         let finalName = userInput;
-        if (!finalName.includes('.') && format !== 'custom') {
-            finalName += '.' + format;
+        if (!finalName.includes('.')) {
+            finalName += '.html';
         }
-
+        
         files[activeIndex].name = finalName;
         renderTabs();
         saveToLocal();
-
+        
         const blob = new Blob([editor.value], { type: 'text/plain' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = finalName;
         a.click();
     }
-
+    
     function openFile(e) {
         const file = e.target.files[0]; if (!file) return;
         const reader = new FileReader();
@@ -245,13 +433,17 @@
             activeIndex = files.length - 1; renderTabs();
         };
         reader.readAsText(file);
+        closeDropdown();
     }
-
-    function changeZoom(v) { files[activeIndex].fontSize += v; applyData(); }
+    
+    function changeZoom(v) { 
+        files[activeIndex].fontSize = Math.max(8, files[activeIndex].fontSize + v); 
+        applyData(); 
+    }
     function toggleWrap() { files[activeIndex].wrap = !files[activeIndex].wrap; applyData(); }
     function toggleFont() { files[activeIndex].isMono = !files[activeIndex].isMono; applyData(); }
-    function clearCurrentFile() { if(confirm('Очистить?')) { editor.value = ''; onTextChange(); } }
-
+    function clearCurrentFile() { if(confirm('Clear current file?')) { editor.value = ''; onTextChange(); } }
+    
     function shiftLine(forward) {
         const start = editor.selectionStart;
         const end = editor.selectionEnd;
@@ -275,7 +467,7 @@
         }
         onTextChange();
     }
-
+    
     function handleKeyDown(e) {
         if (e.key === 'Tab') {
             e.preventDefault();
@@ -288,7 +480,7 @@
             const currentLine = value.substring(lineStart, start);
             const listMatch = currentLine.match(/^(\s*)([-*+]|(\d+)\.)\s+/);
             const curScroll = wrap.scrollTop;
-
+            
             if (listMatch) {
                 e.preventDefault();
                 let markerPart = listMatch[2];
@@ -304,13 +496,14 @@
                 editor.setSelectionRange(newPos, newPos);
                 onTextChange();
             }
-
+            
             setTimeout(() => {
                 wrap.scrollTop = curScroll;
                 scrollIntoViewFix();
             }, 0);
         }
     }
+    
     renderTabs();
 </script>
 </body>
