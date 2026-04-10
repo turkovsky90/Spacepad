@@ -10,12 +10,12 @@
     <meta name="apple-mobile-web-app-title" content="Spacepad">
     <meta name="mobile-web-app-capable" content="yes">
     
-    <!-- Иконки для браузера и iOS -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='20' y='30' width='60' height='40' fill='none' stroke='%23D1E1FF' stroke-width='3' rx='4'/%3E%3Cpath d='M35 45 L45 45 M55 45 L65 45 M40 55 L50 55 M60 55 L70 55' stroke='%23D1E1FF' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='20' y='30' width='60' height='40' fill='none' stroke='%23D1E1FF' stroke-width='3' rx='4'/%3E%3Cpath d='M35 45 L45 45 M55 45 L65 45 M40 55 L50 55 M60 55 L70 55' stroke='%23D1E1FF' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+    <!-- favicon и apple-touch-icon с символом </> (вариант 3) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='68' font-size='56' fill='%23D1E1FF' text-anchor='middle' font-family='monospace'%3E%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='68' font-size='56' fill='%23D1E1FF' text-anchor='middle' font-family='monospace'%3E%3C/text%3E%3C/svg%3E">
     
     <script>
-        // PWA Манифест — создаём динамически (как в Zenomat)
+        // PWA Манифест
         (function() {
             const manifestObj = {
                 name: "Spacepad",
@@ -27,7 +27,7 @@
                 background_color: "#1e1e1e",
                 theme_color: "#1e1e1e",
                 icons: [{
-                    src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='20' y='30' width='60' height='40' fill='none' stroke='%23D1E1FF' stroke-width='3' rx='4'/%3E%3Cpath d='M35 45 L45 45 M55 45 L65 45 M40 55 L50 55 M60 55 L70 55' stroke='%23D1E1FF' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E",
+                    src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='68' font-size='56' fill='%23D1E1FF' text-anchor='middle' font-family='monospace'%3E%3C/text%3E%3C/svg%3E",
                     sizes: "512x512",
                     type: "image/svg+xml",
                     purpose: "any maskable"
@@ -246,7 +246,7 @@
     </div>
 </div>
 <script>
-    // Service Worker (как в Zenomat)
+    // Service Worker
     if ('serviceWorker' in navigator) {
         const swCode = `self.addEventListener('install', e => self.skipWaiting()); self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));`;
         const swBlob = new Blob([swCode], { type: 'application/javascript' });
