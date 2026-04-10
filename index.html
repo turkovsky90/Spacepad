@@ -9,40 +9,92 @@
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2991/2991990.png">
     <style>
         :root { --bg: #1e1e1e; --panel: #2d2d2d; --text: #d4d4d4; --accent: #007acc; --accent-hover: #0090f0; --border: #444; --btn: #3c3c3c; --btn-hover: #4a4a4a; }
-        * { box-sizing: border-box; }
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: var(--bg); color: var(--text); overflow: hidden; position: fixed; font-family: sans-serif; }
-        .container { display: flex; flex-direction: column; height: 100vh; width: 100%; position: relative; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; width: 100%; overflow: hidden; position: fixed; top: 0; left: 0; background: var(--bg); }
+        body { overflow: hidden; }
+        .container { 
+            display: flex; 
+            flex-direction: column; 
+            height: 100%; 
+            width: 100%; 
+            overflow: hidden; 
+            position: relative; 
+            background: var(--bg);
+        }
         .tabs-container { display: flex; background: #252526; border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 10; }
         .tabs { display: flex; overflow-x: auto; flex: 1; scrollbar-width: none; scroll-behavior: smooth; }
         .tabs::-webkit-scrollbar { display: none; }
-        .tab { display: flex; align-items: stretch; cursor: pointer; border-right: 1px solid var(--border); background: #2d2d2d; font-size: 14px; color: #888; max-width: 180px; transition: background 0.2s; }
+        .tab { display: flex; align-items: stretch; cursor: pointer; border-right: 1px solid var(--border); background: #2d2d2d; font-size: 14px; color: #888; max-width: 180px; transition: background 0.2s; font-family: sans-serif; }
         .tab:hover { background: #353535; }
         .tab.active { background: var(--bg); border-top: 3px solid var(--accent); color: #fff; }
-        .tab-name { padding: 12px 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; display: flex; align-items: center; }
+        .tab-name { padding: 12px 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; display: flex; align-items: center; font-family: sans-serif; }
         .tab-close { padding: 0 12px; display: flex; align-items: center; font-size: 18px; transition: color 0.2s; }
         .tab-close:hover { color: #fff; background: rgba(255,255,255,0.05); }
         .only-one .tab-close { display: none; }
-        .add-tab { padding: 12px 22px; cursor: pointer; background: #2d2d2d; color: #fff; font-size: 20px; border-left: 1px solid var(--border); flex-shrink: 0; transition: background 0.2s; }
+        .add-tab { padding: 12px 22px; cursor: pointer; background: #2d2d2d; color: #fff; font-size: 20px; border-left: 1px solid var(--border); flex-shrink: 0; transition: background 0.2s; font-family: sans-serif; }
         .add-tab:hover { background: #353535; }
-        .menu-dots { padding: 12px 22px; cursor: pointer; background: #2d2d2d; color: #fff; font-size: 20px; border-left: 1px solid var(--border); flex-shrink: 0; transition: background 0.2s; font-weight: bold; line-height: 1; user-select: none; }
+        
+        .menu-dots { 
+            padding: 12px 28px; 
+            cursor: pointer; 
+            background: #2d2d2d; 
+            color: #fff; 
+            font-size: 20px; 
+            border-left: 1px solid var(--border); 
+            flex-shrink: 0; 
+            transition: background 0.2s; 
+            font-weight: bold; 
+            line-height: 1; 
+            user-select: none; 
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 10px;
+            font-family: sans-serif;
+        }
         .menu-dots:hover { background: #353535; }
-        .dropdown-menu { position: fixed; background: #252526; border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 1000; min-width: 160px; display: none; flex-direction: column; overflow: hidden; }
+        
+        .dropdown-menu { 
+            position: fixed; 
+            background: #252526; 
+            border: 1px solid var(--border); 
+            border-radius: 6px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4); 
+            z-index: 1000; 
+            min-width: 160px; 
+            display: none; 
+            flex-direction: column; 
+            overflow: hidden; 
+            right: 8px !important;
+        }
         .dropdown-menu.show { display: flex; }
-        .dropdown-item { padding: 10px 16px; cursor: pointer; font-size: 13px; color: var(--text); transition: background 0.2s; white-space: nowrap; font-family: sans-serif; }
+        .dropdown-item { 
+            padding: 10px 16px; 
+            cursor: pointer; 
+            font-size: 13px; 
+            color: var(--text); 
+            transition: background 0.2s; 
+            white-space: nowrap; 
+            font-family: sans-serif;
+        }
         .dropdown-item:hover { background: #3c3c3c; }
         .dropdown-divider { height: 1px; background: var(--border); margin: 4px 0; }
         
-        /* Обертка для редактора и плавающей панели */
         .editor-wrapper {
-            flex: 1;
             position: relative;
+            flex: 1;
             overflow: hidden;
+            min-height: 0;
         }
         #editor { 
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%; 
             height: 100%; 
             background: var(--bg); 
-            color: inherit; 
+            color: #d4d4d4;
             border: none; 
             outline: none; 
             padding: 15px; 
@@ -55,30 +107,60 @@
         .font-mono { font-family: 'Consolas', 'Monaco', monospace !important; }
         .font-sans { font-family: sans-serif !important; }
         
-        /* Панель с кнопками — absolute внутри editor-wrapper, будет подниматься при сжатии контейнера */
-        .floating-tab-panel {
+        .floating-panels-container {
             position: absolute;
             bottom: 16px;
-            left: 12px;
+            left: 0;
             z-index: 20;
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+        .toggle-panel {
+            background: rgba(45, 45, 45, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border);
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+            border-left: none;
+            width: 32px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .toggle-panel:hover {
+            background: var(--btn-hover);
+        }
+        .toggle-panel span {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: normal;
+            color: white;
+            transition: transform 0.2s;
+        }
+        .collapsed .toggle-panel span {
+            transform: rotate(45deg);
+        }
+        .action-panel {
             background: rgba(45, 45, 45, 0.95);
             backdrop-filter: blur(8px);
             border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 6px 8px;
+            overflow: hidden;
             display: flex;
-            gap: 6px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: opacity 0.2s, transform 0.2s;
         }
-        .floating-tab-panel button {
-            height: 38px;
-            min-width: 46px;
-            background: var(--btn);
+        .action-panel button {
+            height: 44px;
+            background: transparent;
             color: white;
-            border: 1px solid var(--border);
-            padding: 0;
+            border: none;
+            padding: 0 16px;
             cursor: pointer;
-            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -87,16 +169,23 @@
             font-weight: normal;
             line-height: 1;
             padding-bottom: 4px;
+            font-family: sans-serif;
         }
-        .floating-tab-panel button:hover { background: var(--btn-hover); }
-        .floating-tab-panel .save-btn {
-            font-size: 13px;
-            padding: 0 14px;
-            gap: 4px;
-            min-width: auto;
+        .action-panel button:hover { background: var(--btn-hover); }
+        .action-panel .save-btn {
+            font-size: 12px;
+            padding: 0 16px;
+            gap: 6px;
             padding-bottom: 0;
         }
-        
+        .collapsed .action-panel {
+            opacity: 0;
+            transform: scale(0.9);
+            pointer-events: none;
+            width: 0;
+            padding: 0;
+            margin: 0;
+        }
         .stats-bar { 
             background: #2a2a2a; 
             color: #aaa; 
@@ -110,6 +199,8 @@
             border-top: 1px solid var(--border);
             flex-shrink: 0;
             width: 100%;
+            position: relative;
+            z-index: 5;
         }
         .stats-bar b { color: #ddd; }
         #caretHelper { position: absolute; width: 1px; height: 1px; pointer-events: none; opacity: 0; }
@@ -127,7 +218,7 @@
         <div class="dropdown-item" id="menuRedo">Redo</div>
         <div class="dropdown-divider"></div>
         <div class="dropdown-item" id="menuOpen">Open file</div>
-        <div class="dropdown-item" id="menuSave">Save</div>
+        <div class="dropdown-item" id="menuSave">Save as...</div>
         <div class="dropdown-divider"></div>
         <div class="dropdown-item" id="menuZoomOut">Zoom out</div>
         <div class="dropdown-item" id="menuZoomIn">Zoom in</div>
@@ -140,12 +231,20 @@
     
     <div class="editor-wrapper">
         <textarea id="editor" class="font-mono" spellcheck="false" oninput="onTextChange()" onkeydown="handleKeyDown(event)" placeholder="Spacepad..."></textarea>
-        <div class="floating-tab-panel">
-            <button onclick="saveFile()" class="save-btn">💾 Save</button>
-            <button onclick="shiftLine(false)" title="Tab left">⇤</button>
-            <button onclick="shiftLine(true)" title="Tab right">⇥</button>
-        </div>
         <div id="caretHelper"></div>
+        
+        <div class="floating-panels-container" id="floatingContainer">
+            <div class="toggle-panel" id="togglePanelBtn">
+                <span id="toggleIcon">✕</span>
+            </div>
+            <div class="action-panel" id="savePanel">
+                <button onclick="saveFile()" class="save-btn">💾 Save as...</button>
+            </div>
+            <div class="action-panel" id="tabPanel">
+                <button onclick="shiftLine(false)" title="Tab left">⇤</button>
+                <button onclick="shiftLine(true)" title="Tab right">⇥</button>
+            </div>
+        </div>
     </div>
     
     <div class="stats-bar">
@@ -173,6 +272,58 @@
     fileInput.hidden = true;
     fileInput.onchange = (e) => openFile(e);
     document.body.appendChild(fileInput);
+    
+    function setContainerHeight() {
+        if (window.visualViewport) {
+            const h = window.visualViewport.height;
+            document.documentElement.style.height = h + 'px';
+            document.body.style.height = h + 'px';
+            mainApp.style.height = h + 'px';
+        } else {
+            const h = window.innerHeight;
+            document.documentElement.style.height = h + 'px';
+            document.body.style.height = h + 'px';
+            mainApp.style.height = h + 'px';
+        }
+        window.scrollTo(0, 0);
+    }
+    setContainerHeight();
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', setContainerHeight);
+    }
+    window.addEventListener('resize', setContainerHeight);
+    
+    // Управление свёртыванием панелей: мобилка/десктоп
+    const floatingContainer = document.getElementById('floatingContainer');
+    const togglePanelBtn = document.getElementById('togglePanelBtn');
+    let panelsCollapsed = false;
+    let userOverride = false; // флаг, что пользователь вручную переключил
+    
+    function setDefaultCollapseState() {
+        if (userOverride) return;
+        const isDesktop = window.innerWidth >= 768;
+        panelsCollapsed = isDesktop; // на десктопе свёрнуты, на мобилке развёрнуты
+        if (panelsCollapsed) {
+            floatingContainer.classList.add('collapsed');
+        } else {
+            floatingContainer.classList.remove('collapsed');
+        }
+    }
+    setDefaultCollapseState();
+    window.addEventListener('resize', () => {
+        if (!userOverride) setDefaultCollapseState();
+    });
+    
+    togglePanelBtn.addEventListener('click', () => {
+        panelsCollapsed = !panelsCollapsed;
+        userOverride = true; // после ручного клика не меняем автоматически
+        if (panelsCollapsed) {
+            floatingContainer.classList.add('collapsed');
+        } else {
+            floatingContainer.classList.remove('collapsed');
+        }
+    });
+    
     function closeDropdown() {
         dropdownMenu.classList.remove('show');
         menuOpen = false;
@@ -184,7 +335,7 @@
         } else {
             const rect = menuDotsBtn.getBoundingClientRect();
             dropdownMenu.style.top = (rect.bottom + 4) + 'px';
-            dropdownMenu.style.right = (window.innerWidth - rect.right) + 'px';
+            dropdownMenu.style.right = '8px';
             dropdownMenu.classList.add('show');
             menuOpen = true;
             updateDropdownLabels();
@@ -246,9 +397,7 @@
         clearCurrentFile();
         closeDropdown();
     });
-    function syncHeight() {
-        // не нужно
-    }
+    
     function scrollIntoViewFix() {
         const start = editor.selectionStart;
         const textBefore = editor.value.substring(0, start);
@@ -264,20 +413,12 @@
             editor.setSelectionRange(len, len);
         }
     }
-    if (window.visualViewport) { 
-        window.visualViewport.addEventListener('resize', () => { 
-            mainApp.style.height = window.visualViewport.height + 'px'; 
-            window.scrollTo(0, 0); 
-        }); 
-    }
     function renderTabs() {
         const bar = document.getElementById('tabsBar'); bar.innerHTML = '';
         document.getElementById('tabsOuter').classList.toggle('only-one', files.length === 1);
         files.forEach((f, i) => {
             const d = document.createElement('div'); d.className = `tab ${i === activeIndex ? 'active' : ''}`;
-            let displayName = f.name;
-            if (displayName.includes('.')) displayName = displayName.substring(0, displayName.lastIndexOf('.'));
-            d.innerHTML = `<div class="tab-name" onclick="switchTab(${i})" ondblclick="renameTab(${i})">${escapeHtml(displayName)}</div><div class="tab-close" onclick="closeTab(${i}, event)">×</div>`;
+            d.innerHTML = `<div class="tab-name" onclick="switchTab(${i})" ondblclick="renameTab(${i})">${escapeHtml(f.name)}</div><div class="tab-close" onclick="closeTab(${i}, event)">×</div>`;
             bar.appendChild(d);
         });
         const activeTab = document.querySelector('.tab.active'); if (activeTab) activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center' });
@@ -342,7 +483,7 @@
     function saveFile() {
         const f = files[activeIndex];
         let suggestedName = f.name;
-        let userInput = prompt("Enter file name:", suggestedName);
+        let userInput = prompt("Save file as:", suggestedName);
         if (!userInput) return;
         let finalName = userInput;
         if (!finalName.includes('.')) {
@@ -408,7 +549,7 @@
             const lineStart = value.lastIndexOf('\n', start - 1) + 1;
             const currentLine = value.substring(lineStart, start);
             const listMatch = currentLine.match(/^(\s*)([-*+]|(\d+)\.)\s+/);
-            const curScroll = wrapper.scrollTop;
+            const curScroll = editor.scrollTop;
             if (listMatch) {
                 e.preventDefault();
                 let markerPart = listMatch[2];
@@ -423,7 +564,7 @@
                 onTextChange();
             }
             setTimeout(() => {
-                wrapper.scrollTop = curScroll;
+                editor.scrollTop = curScroll;
                 scrollIntoViewFix();
             }, 0);
         }
