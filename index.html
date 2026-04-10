@@ -10,8 +10,8 @@
     <meta name="apple-mobile-web-app-title" content="Spacepad">
     <meta name="mobile-web-app-capable" content="yes">
     
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='68' font-size='48' fill='%23FFFFFF' text-anchor='middle' font-family='monospace' font-weight='bold'%3E%3C/text%3E%3C/svg%3E">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='68' font-size='48' fill='%23FFFFFF' text-anchor='middle' font-family='monospace' font-weight='bold'%3E%3C/text%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='68' font-size='48' fill='%23FFFFFF' text-anchor='middle' font-family='monospace' font-weight='bold'%3E%3C/%3E%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='68' font-size='48' fill='%23FFFFFF' text-anchor='middle' font-family='monospace' font-weight='bold'%3E%3C/%3E%3C/text%3E%3C/svg%3E">
     
     <script>
         (function() {
@@ -25,7 +25,7 @@
                 background_color: "#1e1e1e",
                 theme_color: "#1e1e1e",
                 icons: [{
-                    src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='68' font-size='48' fill='%23FFFFFF' text-anchor='middle' font-family='monospace' font-weight='bold'%3E%3C/text%3E%3C/svg%3E",
+                    src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='68' font-size='48' fill='%23FFFFFF' text-anchor='middle' font-family='monospace' font-weight='bold'%3E%3C/%3E%3C/text%3E%3C/svg%3E",
                     sizes: "512x512",
                     type: "image/svg+xml",
                     purpose: "any maskable"
@@ -42,12 +42,12 @@
     <style>
         :root { --bg: #1e1e1e; --panel: #2d2d2d; --text: #d4d4d4; --accent: #007acc; --accent-hover: #0090f0; --border: #444; --btn: #3c3c3c; --btn-hover: #4a4a4a; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100svh; width: 100%; overflow: hidden; position: fixed; top: 0; left: 0; background: var(--bg); }
+        html, body { height: 100%; width: 100%; overflow: hidden; position: fixed; top: 0; left: 0; background: var(--bg); }
         body { overflow: hidden; }
         .container { 
             display: flex; 
             flex-direction: column; 
-            height: 100svh; 
+            height: 100%; 
             width: 100%; 
             overflow: hidden; 
             position: relative; 
@@ -124,7 +124,7 @@
             top: 0;
             left: 0;
             width: 100%; 
-            height: 100svh; 
+            height: 100%; 
             background: var(--bg); 
             color: #d4d4d4;
             border: none; 
