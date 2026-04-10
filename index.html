@@ -5,8 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Spacepad</title>
     <meta name="theme-color" content="#1e1e1e">
+    <!-- PWA манифест — оригинальный, с рабочей иконкой flaticon -->
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlNwYWNlcGFkIiwKICAic2hvcnRfbmFtZSI6ICJTcGFjZXBhZCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMWUxZTFlIiwKICAidGhlbWVfY29sb3IiOiAiIzFlMWUxZSIsCiAgImljb25zIjogW3sgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi8yOTkxLzI5OTE5OTAucG5nIiwgInR5cGUiOiAiaW1hZ2UvcG5nIiwgInNpemVzIjogIjUxMng1MTIiIH1dCn0=">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2991/2991990.png">
+    <!-- apple-touch-icon для iOS — твоя минималистичная иконка -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 18l4-4-4-4M8 6l-4 4 4 4'/%3E%3C/svg%3E">
+    <!-- favicon для вкладки браузера — тоже минималистичная -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 18l4-4-4-4M8 6l-4 4 4 4'/%3E%3C/svg%3E">
     <style>
         :root { --bg: #1e1e1e; --panel: #2d2d2d; --text: #d4d4d4; --accent: #007acc; --accent-hover: #0090f0; --border: #444; --btn: #3c3c3c; --btn-hover: #4a4a4a; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -107,7 +111,6 @@
         .font-mono { font-family: 'Consolas', 'Monaco', monospace !important; }
         .font-sans { font-family: sans-serif !important; }
         
-        /* Панели: сначала табы, потом Save as... */
         .floating-panels-container {
             position: absolute;
             bottom: 16px;
@@ -196,12 +199,10 @@
         <div id="caretHelper"></div>
         
         <div class="floating-panels-container">
-            <!-- Сначала панель с кнопками табов -->
             <div class="action-panel">
                 <button onclick="shiftLine(false)" title="Tab left">⇤</button>
                 <button onclick="shiftLine(true)" title="Tab right">⇥</button>
             </div>
-            <!-- Затем панель Save as... только с иконкой -->
             <div class="action-panel">
                 <button onclick="saveFile()" class="save-btn">💾</button>
             </div>
