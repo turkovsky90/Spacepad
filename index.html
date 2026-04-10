@@ -293,34 +293,45 @@
     }
     window.addEventListener('resize', setContainerHeight);
     
-    // Управление свёртыванием панелей: мобилка/десктоп
+    // Управление свёртыванием панелей с сохранением состояния
     const floatingContainer = document.getElementById('floatingContainer');
     const togglePanelBtn = document.getElementById('togglePanelBtn');
     let panelsCollapsed = false;
-    let userOverride = false; // флаг, что пользователь вручную переключил
     
-    function setDefaultCollapseState() {
-        if (userOverride) return;
-        const isDesktop = window.innerWidth >= 768;
-        panelsCollapsed = isDesktop; // на десктопе свёрнуты, на мобилке развёрнуты
+    // Загружаем сохранённое состояние или определяем по умолчанию
+    function loadPanelState() {
+        const saved = localStorage.getItem('spacepad_panels_collapsed');
+        if (saved !== null) {
+            panelsCollapsed = saved === 'true';
+        } else {
+            // По умолчанию: на десктопе (ширина >= 768) свёрнуты, на мобилке развёрнуты
+            panelsCollapsed = window.innerWidth >= 768;
+        }
+        applyPanelState();
+    }
+    function applyPanelState() {
         if (panelsCollapsed) {
             floatingContainer.classList.add('collapsed');
         } else {
             floatingContainer.classList.remove('collapsed');
         }
+        // Сохраняем в localStorage
+        localStorage.setItem('spacepad_panels_collapsed', panelsCollapsed);
     }
-    setDefaultCollapseState();
-    window.addEventListener('resize', () => {
-        if (!userOverride) setDefaultCollapseState();
-    });
+    loadPanelState();
     
+    // Обработчик клика по кнопке
     togglePanelBtn.addEventListener('click', () => {
         panelsCollapsed = !panelsCollapsed;
-        userOverride = true; // после ручного клика не меняем автоматически
-        if (panelsCollapsed) {
-            floatingContainer.classList.add('collapsed');
-        } else {
-            floatingContainer.classList.remove('collapsed');
+        applyPanelState();
+    });
+    
+    // При изменении размера окна не сбрасываем сохранённое состояние, но если сохранённого нет — пересчитываем дефолт
+    window.addEventListener('resize', () => {
+        // Если в localStorage ничего не было, то пересчитываем дефолт (только если не было ручного переключения)
+        if (localStorage.getItem('spacepad_panels_collapsed') === null) {
+            panelsCollapsed = window.innerWidth >= 768;
+            applyPanelState();
         }
     });
     
