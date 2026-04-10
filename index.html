@@ -107,43 +107,15 @@
         .font-mono { font-family: 'Consolas', 'Monaco', monospace !important; }
         .font-sans { font-family: sans-serif !important; }
         
+        /* Панели: сначала табы, потом Save as... */
         .floating-panels-container {
             position: absolute;
             bottom: 16px;
-            left: 0;
+            left: 12px;
             z-index: 20;
             display: flex;
             gap: 8px;
             align-items: flex-start;
-        }
-        .toggle-panel {
-            background: rgba(45, 45, 45, 0.95);
-            backdrop-filter: blur(8px);
-            border: 1px solid var(--border);
-            border-top-right-radius: 10px;
-            border-bottom-right-radius: 10px;
-            border-left: none;
-            width: 32px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-        .toggle-panel:hover {
-            background: var(--btn-hover);
-        }
-        .toggle-panel span {
-            display: inline-block;
-            font-size: 12px;
-            font-weight: normal;
-            color: white;
-            transition: transform 0.2s;
-        }
-        .collapsed .toggle-panel span {
-            transform: rotate(45deg);
         }
         .action-panel {
             background: rgba(45, 45, 45, 0.95);
@@ -152,7 +124,6 @@
             border-radius: 10px;
             overflow: hidden;
             display: flex;
-            transition: opacity 0.2s, transform 0.2s;
         }
         .action-panel button {
             height: 44px;
@@ -173,18 +144,9 @@
         }
         .action-panel button:hover { background: var(--btn-hover); }
         .action-panel .save-btn {
-            font-size: 12px;
+            font-size: 20px;
             padding: 0 16px;
-            gap: 6px;
-            padding-bottom: 0;
-        }
-        .collapsed .action-panel {
-            opacity: 0;
-            transform: scale(0.9);
-            pointer-events: none;
-            width: 0;
-            padding: 0;
-            margin: 0;
+            padding-bottom: 2px;
         }
         .stats-bar { 
             background: #2a2a2a; 
@@ -233,16 +195,15 @@
         <textarea id="editor" class="font-mono" spellcheck="false" oninput="onTextChange()" onkeydown="handleKeyDown(event)" placeholder="Spacepad..."></textarea>
         <div id="caretHelper"></div>
         
-        <div class="floating-panels-container" id="floatingContainer">
-            <div class="toggle-panel" id="togglePanelBtn">
-                <span id="toggleIcon">✕</span>
-            </div>
-            <div class="action-panel" id="savePanel">
-                <button onclick="saveFile()" class="save-btn">💾 Save as...</button>
-            </div>
-            <div class="action-panel" id="tabPanel">
+        <div class="floating-panels-container">
+            <!-- Сначала панель с кнопками табов -->
+            <div class="action-panel">
                 <button onclick="shiftLine(false)" title="Tab left">⇤</button>
                 <button onclick="shiftLine(true)" title="Tab right">⇥</button>
+            </div>
+            <!-- Затем панель Save as... только с иконкой -->
+            <div class="action-panel">
+                <button onclick="saveFile()" class="save-btn">💾</button>
             </div>
         </div>
     </div>
@@ -292,48 +253,6 @@
         window.visualViewport.addEventListener('resize', setContainerHeight);
     }
     window.addEventListener('resize', setContainerHeight);
-    
-    // Управление свёртыванием панелей с сохранением состояния
-    const floatingContainer = document.getElementById('floatingContainer');
-    const togglePanelBtn = document.getElementById('togglePanelBtn');
-    let panelsCollapsed = false;
-    
-    // Загружаем сохранённое состояние или определяем по умолчанию
-    function loadPanelState() {
-        const saved = localStorage.getItem('spacepad_panels_collapsed');
-        if (saved !== null) {
-            panelsCollapsed = saved === 'true';
-        } else {
-            // По умолчанию: на десктопе (ширина >= 768) свёрнуты, на мобилке развёрнуты
-            panelsCollapsed = window.innerWidth >= 768;
-        }
-        applyPanelState();
-    }
-    function applyPanelState() {
-        if (panelsCollapsed) {
-            floatingContainer.classList.add('collapsed');
-        } else {
-            floatingContainer.classList.remove('collapsed');
-        }
-        // Сохраняем в localStorage
-        localStorage.setItem('spacepad_panels_collapsed', panelsCollapsed);
-    }
-    loadPanelState();
-    
-    // Обработчик клика по кнопке
-    togglePanelBtn.addEventListener('click', () => {
-        panelsCollapsed = !panelsCollapsed;
-        applyPanelState();
-    });
-    
-    // При изменении размера окна не сбрасываем сохранённое состояние, но если сохранённого нет — пересчитываем дефолт
-    window.addEventListener('resize', () => {
-        // Если в localStorage ничего не было, то пересчитываем дефолт (только если не было ручного переключения)
-        if (localStorage.getItem('spacepad_panels_collapsed') === null) {
-            panelsCollapsed = window.innerWidth >= 768;
-            applyPanelState();
-        }
-    });
     
     function closeDropdown() {
         dropdownMenu.classList.remove('show');
