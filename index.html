@@ -27,7 +27,7 @@
         .tabs::-webkit-scrollbar { display: none; }
         .tab { display: flex; align-items: stretch; cursor: pointer; border-right: 1px solid var(--border); background: #2d2d2d; font-size: 14px; color: #888; max-width: 180px; min-width: 80px; transition: background 0.2s; font-family: sans-serif; }
         .tab:hover { background: #353535; }
-        .tab.active { background: var(--bg); border-top: 3px solid #ffffff; color: #fff; }
+        .tab.active { background: var(--bg); border-top: 3px solid #aaaaaa; color: #fff; }
         .tab-name { 
             padding: 12px 8px; 
             overflow: hidden; 
@@ -235,6 +235,7 @@
     const panelsContainer = document.getElementById('floatingPanelsContainer');
     let menuOpen = false;
     let repositionObserver = null;
+    let editingTab = null; // храним ссылку на текущий редактируемый tab-element
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.hidden = true;
@@ -388,6 +389,7 @@
     });
     
     function startRename(index, nameDiv) {
+        if (editingTab) return; // уже редактируем какую-то вкладку
         const tabElement = nameDiv.closest('.tab');
         if (!tabElement) return;
         
@@ -402,6 +404,8 @@
         input.style.width = '100%';
         
         const cleanup = () => {
+            if (editingTab !== tabElement) return;
+            editingTab = null;
             tabElement.style.width = '';
             tabElement.style.minWidth = '';
             tabElement.style.maxWidth = '';
@@ -427,6 +431,7 @@
         nameDiv.appendChild(input);
         input.focus();
         input.select();
+        editingTab = tabElement;
     }
     
     function scrollIntoViewFix() {
@@ -449,6 +454,8 @@
             nameDiv.onclick = (e) => {
                 e.stopPropagation();
                 if (i === activeIndex) {
+                    // Если уже редактируем эту вкладку — ничего не делаем
+                    if (editingTab && editingTab === d) return;
                     startRename(i, nameDiv);
                 } else {
                     switchTab(i);
@@ -498,8 +505,14 @@
         localStorage.setItem('spacepad_files', JSON.stringify(files));
         localStorage.setItem('spacepad_active', activeIndex);
     }
-    function switchTab(i) { activeIndex = i; renderTabs(); closeDropdown(); }
+    function switchTab(i) { 
+        if (editingTab) return; // не переключаем вкладку во время редактирования
+        activeIndex = i; 
+        renderTabs(); 
+        closeDropdown(); 
+    }
     function newFile() {
+        if (editingTab) return;
         files.push({ name: 'untitled.html', content: '', fontSize: 16, wrap: true, isMono: true });
         activeIndex = files.length - 1;
         renderTabs();
@@ -507,6 +520,7 @@
     }
     function closeTab(i, e) {
         e.stopPropagation();
+        if (editingTab) return;
         if (files.length === 1) return;
         files.splice(i, 1);
         if (activeIndex >= files.length) activeIndex = files.length - 1;
@@ -532,6 +546,7 @@
         a.click();
     }
     function openFile(e) {
+        if (editingTab) return;
         const file = e.target.files[0]; if (!file) return;
         const reader = new FileReader();
         reader.onload = (ev) => {
