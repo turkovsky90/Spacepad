@@ -27,7 +27,7 @@
         .tabs::-webkit-scrollbar { display: none; }
         .tab { display: flex; align-items: stretch; cursor: pointer; border-right: 1px solid var(--border); background: #2d2d2d; font-size: 14px; color: #888; max-width: 180px; min-width: 80px; transition: background 0.2s; font-family: sans-serif; }
         .tab:hover { background: #353535; }
-        .tab.active { background: var(--bg); border-top: 3px solid var(--accent); color: #fff; }
+        .tab.active { background: var(--bg); border-top: 3px solid #ffffff; color: #fff; }
         .tab-name { 
             padding: 12px 8px; 
             overflow: hidden; 
@@ -393,7 +393,6 @@
         
         const oldName = files[index].name;
         const originalWidth = tabElement.offsetWidth;
-        // Фиксируем ширину вкладки на время редактирования
         tabElement.style.width = originalWidth + 'px';
         tabElement.style.minWidth = originalWidth + 'px';
         tabElement.style.maxWidth = originalWidth + 'px';
