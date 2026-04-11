@@ -35,27 +35,6 @@
         .add-tab { padding: 12px 22px; cursor: pointer; background: #2d2d2d; color: #fff; font-size: 20px; border-left: 1px solid var(--border); flex-shrink: 0; transition: background 0.2s; font-family: sans-serif; }
         .add-tab:hover { background: #353535; }
         
-        .menu-dots { 
-            padding: 12px 28px; 
-            cursor: pointer; 
-            background: #2d2d2d; 
-            color: #fff; 
-            font-size: 20px; 
-            border-left: 1px solid var(--border); 
-            flex-shrink: 0; 
-            transition: background 0.2s; 
-            font-weight: bold; 
-            line-height: 1; 
-            user-select: none; 
-            letter-spacing: 2px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding-bottom: 10px;
-            font-family: sans-serif;
-        }
-        .menu-dots:hover { background: #353535; }
-        
         .dropdown-menu { 
             position: fixed; 
             background: #252526; 
@@ -67,7 +46,6 @@
             display: none; 
             flex-direction: column; 
             overflow: hidden; 
-            right: 8px !important;
         }
         .dropdown-menu.show { display: flex; }
         .dropdown-item { 
@@ -111,11 +89,13 @@
         .floating-panels-container {
             position: absolute;
             bottom: 16px;
-            left: 12px;
+            left: 0;
+            right: 0;
             z-index: 20;
             display: flex;
             gap: 8px;
             align-items: flex-start;
+            justify-content: center;
         }
         .action-panel {
             background: rgba(45, 45, 45, 0.95);
@@ -126,27 +106,34 @@
             display: flex;
         }
         .action-panel button {
-            height: 44px;
+            height: 48px;
             background: transparent;
             color: white;
             border: none;
-            padding: 0 16px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: background 0.2s;
-            font-size: 22px;
-            font-weight: normal;
-            line-height: 1;
-            padding-bottom: 4px;
             font-family: sans-serif;
+            min-width: 44px;
         }
         .action-panel button:hover { background: var(--btn-hover); }
-        .action-panel .save-btn {
-            font-size: 20px;
+        .action-panel .tab-btn {
             padding: 0 16px;
-            padding-bottom: 2px;
+            font-size: 26px;
+            line-height: 1;
+            transform: translateY(-1px);
+        }
+        /* Кнопка скачивания: шире на 6px (было 18, стало 24) */
+        .action-panel .save-btn {
+            padding: 0 24px;
+            font-size: 26px;
+        }
+        /* Кнопка меню: шире на 6px (было 22, стало 28) */
+        .action-panel .menu-btn {
+            padding: 0 28px;
+            font-size: 22px;
         }
         .stats-bar { 
             background: #2a2a2a; 
@@ -173,35 +160,36 @@
     <div class="tabs-container" id="tabsOuter">
         <div class="tabs" id="tabsBar"></div>
         <div class="add-tab" onclick="newFile()">+</div>
-        <div class="menu-dots" id="menuDotsBtn">⋮</div>
     </div>
     <div class="dropdown-menu" id="dropdownMenu">
-        <div class="dropdown-item" id="menuUndo">Undo</div>
-        <div class="dropdown-item" id="menuRedo">Redo</div>
+        <div class="dropdown-item" id="menuClear">Clear current</div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item" id="menuFont">Font: <span id="fontLabel">Mono</span></div>
+        <div class="dropdown-item" id="menuWrap">Wrap: <span id="wrapLabel">On</span></div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item" id="menuZoomIn">Zoom in</div>
+        <div class="dropdown-item" id="menuZoomOut">Zoom out</div>
         <div class="dropdown-divider"></div>
         <div class="dropdown-item" id="menuOpen">Open file</div>
-        <div class="dropdown-item" id="menuSave">Save as...</div>
         <div class="dropdown-divider"></div>
-        <div class="dropdown-item" id="menuZoomOut">Zoom out</div>
-        <div class="dropdown-item" id="menuZoomIn">Zoom in</div>
-        <div class="dropdown-divider"></div>
-        <div class="dropdown-item" id="menuWrap">Wrap: <span id="wrapLabel">On</span></div>
-        <div class="dropdown-item" id="menuFont">Font: <span id="fontLabel">Mono</span></div>
-        <div class="dropdown-divider"></div>
-        <div class="dropdown-item" id="menuClear">Clear current</div>
+        <div class="dropdown-item" id="menuRedo">Redo</div>
+        <div class="dropdown-item" id="menuUndo">Undo</div>
     </div>
     
     <div class="editor-wrapper">
         <textarea id="editor" class="font-mono" spellcheck="false" oninput="onTextChange()" onkeydown="handleKeyDown(event)" placeholder="Spacepad..."></textarea>
         <div id="caretHelper"></div>
         
-        <div class="floating-panels-container">
+        <div class="floating-panels-container" id="floatingPanelsContainer">
             <div class="action-panel">
-                <button onclick="shiftLine(false)" title="Tab left">⇤</button>
-                <button onclick="shiftLine(true)" title="Tab right">⇥</button>
+                <button onclick="shiftLine(false)" class="tab-btn" title="Tab left">⇤</button>
+                <button onclick="shiftLine(true)" class="tab-btn" title="Tab right">⇥</button>
             </div>
             <div class="action-panel">
-                <button onclick="saveFile()" class="save-btn">💾</button>
+                <button onclick="saveFile()" class="save-btn" title="Download">⤓</button>
+            </div>
+            <div class="action-panel">
+                <button id="floatingMenuBtn" class="menu-btn" title="Menu">⋮</button>
             </div>
         </div>
     </div>
@@ -223,9 +211,11 @@
     const wrapper = document.querySelector('.editor-wrapper');
     const helper = document.getElementById('caretHelper');
     const mainApp = document.getElementById('mainApp');
-    const menuDotsBtn = document.getElementById('menuDotsBtn');
+    const floatingMenuBtn = document.getElementById('floatingMenuBtn');
     const dropdownMenu = document.getElementById('dropdownMenu');
+    const panelsContainer = document.getElementById('floatingPanelsContainer');
     let menuOpen = false;
+    let repositionObserver = null;
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.hidden = true;
@@ -245,6 +235,9 @@
             mainApp.style.height = h + 'px';
         }
         window.scrollTo(0, 0);
+        if (menuOpen) {
+            repositionDropdown();
+        }
     }
     setContainerHeight();
     if (window.visualViewport) {
@@ -252,78 +245,123 @@
     }
     window.addEventListener('resize', setContainerHeight);
     
+    function repositionDropdown() {
+        if (!menuOpen) return;
+        const panelRect = panelsContainer.getBoundingClientRect();
+        const menuHeight = dropdownMenu.offsetHeight;
+        let top = panelRect.top - menuHeight - 8;
+        if (top < 4) top = 4;
+        dropdownMenu.style.top = top + 'px';
+        dropdownMenu.style.right = '8px';
+    }
+    
     function closeDropdown() {
         dropdownMenu.classList.remove('show');
         menuOpen = false;
-    }
-    function toggleDropdown(e) {
-        e.stopPropagation();
-        if (menuOpen) {
-            closeDropdown();
-        } else {
-            const rect = menuDotsBtn.getBoundingClientRect();
-            dropdownMenu.style.top = (rect.bottom + 4) + 'px';
-            dropdownMenu.style.right = '8px';
-            dropdownMenu.classList.add('show');
-            menuOpen = true;
-            updateDropdownLabels();
+        if (repositionObserver) {
+            repositionObserver.disconnect();
+            repositionObserver = null;
         }
     }
+    
+    function showDropdownAbovePanel(event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        if (menuOpen) {
+            closeDropdown();
+            editor.focus();
+            return;
+        }
+        const panelRect = panelsContainer.getBoundingClientRect();
+        let wasVisible = dropdownMenu.classList.contains('show');
+        if (!wasVisible) {
+            dropdownMenu.style.top = '0px';
+            dropdownMenu.style.right = '0px';
+            dropdownMenu.classList.add('show');
+        }
+        const menuHeight = dropdownMenu.offsetHeight;
+        let top = panelRect.top - menuHeight - 8;
+        if (top < 4) top = 4;
+        dropdownMenu.style.top = top + 'px';
+        dropdownMenu.style.right = '8px';
+        if (!wasVisible) {}
+        menuOpen = true;
+        updateDropdownLabels();
+        
+        if (repositionObserver) repositionObserver.disconnect();
+        repositionObserver = new ResizeObserver(() => repositionDropdown());
+        repositionObserver.observe(panelsContainer);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', repositionDropdown);
+        }
+        editor.focus();
+    }
+    
     function updateDropdownLabels() {
         const f = files[activeIndex];
         document.getElementById('wrapLabel').innerText = f.wrap ? 'On' : 'Off';
         document.getElementById('fontLabel').innerText = f.isMono ? 'Mono' : 'Sans';
     }
+    
     document.addEventListener('click', function(e) {
-        if (menuOpen && !dropdownMenu.contains(e.target) && e.target !== menuDotsBtn) {
+        if (menuOpen && !dropdownMenu.contains(e.target) && e.target !== floatingMenuBtn) {
             closeDropdown();
         }
     });
-    menuDotsBtn.addEventListener('click', toggleDropdown);
+    
+    floatingMenuBtn.addEventListener('click', showDropdownAbovePanel);
+    
     document.getElementById('menuUndo').addEventListener('click', (e) => {
         e.stopPropagation();
         document.execCommand('undo');
+        updateDropdownLabels();
+        editor.focus();
     });
     document.getElementById('menuRedo').addEventListener('click', (e) => {
         e.stopPropagation();
         document.execCommand('redo');
+        updateDropdownLabels();
+        editor.focus();
     });
     document.getElementById('menuZoomOut').addEventListener('click', (e) => {
         e.stopPropagation();
         changeZoom(-2);
         updateDropdownLabels();
+        editor.focus();
     });
     document.getElementById('menuZoomIn').addEventListener('click', (e) => {
         e.stopPropagation();
         changeZoom(2);
         updateDropdownLabels();
+        editor.focus();
     });
     document.getElementById('menuOpen').addEventListener('click', (e) => {
         e.stopPropagation();
         fileInput.click();
         closeDropdown();
-    });
-    document.getElementById('menuSave').addEventListener('click', (e) => {
-        e.stopPropagation();
-        saveFile();
-        closeDropdown();
+        editor.focus();
     });
     document.getElementById('menuWrap').addEventListener('click', (e) => {
         e.stopPropagation();
         toggleWrap();
         updateDropdownLabels();
         closeDropdown();
+        editor.focus();
     });
     document.getElementById('menuFont').addEventListener('click', (e) => {
         e.stopPropagation();
         toggleFont();
         updateDropdownLabels();
         closeDropdown();
+        editor.focus();
     });
     document.getElementById('menuClear').addEventListener('click', (e) => {
         e.stopPropagation();
         clearCurrentFile();
         closeDropdown();
+        editor.focus();
     });
     
     function scrollIntoViewFix() {
@@ -333,13 +371,6 @@
         const lineHeight = parseInt(window.getComputedStyle(editor).lineHeight) || 24;
         helper.style.top = (lines.length * lineHeight) + 'px';
         helper.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    }
-    function handleEmptyClick(e) {
-        if (e.target === wrapper) {
-            editor.focus();
-            const len = editor.value.length;
-            editor.setSelectionRange(len, len);
-        }
     }
     function renderTabs() {
         const bar = document.getElementById('tabsBar'); bar.innerHTML = '';
@@ -385,12 +416,13 @@
         localStorage.setItem('spacepad_files', JSON.stringify(files));
         localStorage.setItem('spacepad_active', activeIndex);
     }
-    function switchTab(i) { activeIndex = i; renderTabs(); closeDropdown(); }
+    function switchTab(i) { activeIndex = i; renderTabs(); closeDropdown(); editor.focus(); }
     function newFile() {
         files.push({ name: 'untitled.html', content: '', fontSize: 16, wrap: true, isMono: true });
         activeIndex = files.length - 1;
         renderTabs();
         closeDropdown();
+        editor.focus();
     }
     function renameTab(i) {
         const newName = prompt('File name:', files[i].name);
@@ -399,6 +431,7 @@
             renderTabs(); 
         }
         closeDropdown();
+        editor.focus();
     }
     function closeTab(i, e) {
         e.stopPropagation();
@@ -407,6 +440,7 @@
         if (activeIndex >= files.length) activeIndex = files.length - 1;
         renderTabs();
         closeDropdown();
+        editor.focus();
     }
     function saveFile() {
         const f = files[activeIndex];
@@ -425,6 +459,7 @@
         a.href = URL.createObjectURL(blob);
         a.download = finalName;
         a.click();
+        editor.focus();
     }
     function openFile(e) {
         const file = e.target.files[0]; if (!file) return;
@@ -432,6 +467,7 @@
         reader.onload = (ev) => {
             files.push({ name: file.name, content: ev.target.result, fontSize: 16, wrap: true, isMono: true });
             activeIndex = files.length - 1; renderTabs();
+            editor.focus();
         };
         reader.readAsText(file);
         closeDropdown();
