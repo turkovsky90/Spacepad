@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Spacepad</title>
-    <meta name="theme-color" content="#1e1e1e">
+ <meta name="theme-color" content="#1e1e1e">
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlNwYWNlcGFkIiwKICAic2hvcnRfbmFtZSI6ICJTcGFjZXBhZCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMWUxZTFlIiwKICAidGhlbWVfY29sb3IiOiAiIzFlMWUxZSIsCiAgImljb25zIjogW3sgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi8yOTkxLzI5OTE5OTAucG5nIiwgInR5cGUiOiAiaW1hZ2UvcG5nIiwgInNpemVzIjogIjUxMng1MTIiIH1dCn0=">
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='68' font-size='48' fill='%23FFFFFF' text-anchor='middle' font-family='monospace' font-weight='bold'%3E%3C/%3E%3C/text%3E%3C/svg%3E">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='68' font-size='48' fill='%23FFFFFF' text-anchor='middle' font-family='monospace' font-weight='bold'%3E%3C/%3E%3C/text%3E%3C/svg%3E">
@@ -125,12 +125,10 @@
             line-height: 1;
             transform: translateY(-1px);
         }
-        /* Кнопка скачивания: шире на 6px (было 18, стало 24) */
         .action-panel .save-btn {
             padding: 0 24px;
             font-size: 26px;
         }
-        /* Кнопка меню: шире на 6px (было 22, стало 28) */
         .action-panel .menu-btn {
             padding: 0 28px;
             font-size: 22px;
@@ -208,7 +206,6 @@
     let activeIndex = parseInt(localStorage.getItem('spacepad_active')) || 0;
     if (activeIndex >= files.length) activeIndex = 0;
     const editor = document.getElementById('editor');
-    const wrapper = document.querySelector('.editor-wrapper');
     const helper = document.getElementById('caretHelper');
     const mainApp = document.getElementById('mainApp');
     const floatingMenuBtn = document.getElementById('floatingMenuBtn');
@@ -269,13 +266,15 @@
             event.stopPropagation();
             event.preventDefault();
         }
+        
         if (menuOpen) {
             closeDropdown();
-            editor.focus();
             return;
         }
+        
         const panelRect = panelsContainer.getBoundingClientRect();
-        let wasVisible = dropdownMenu.classList.contains('show');
+        // Временно показываем меню для получения высоты
+        const wasVisible = dropdownMenu.classList.contains('show');
         if (!wasVisible) {
             dropdownMenu.style.top = '0px';
             dropdownMenu.style.right = '0px';
@@ -286,7 +285,7 @@
         if (top < 4) top = 4;
         dropdownMenu.style.top = top + 'px';
         dropdownMenu.style.right = '8px';
-        if (!wasVisible) {}
+        
         menuOpen = true;
         updateDropdownLabels();
         
@@ -296,8 +295,15 @@
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', repositionDropdown);
         }
-        editor.focus();
     }
+    
+    // Предотвращаем потерю фокуса при клике на кнопку меню
+    floatingMenuBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();  // Это не даст текстовому полю потерять фокус
+        e.stopPropagation();
+    });
+    
+    floatingMenuBtn.addEventListener('click', showDropdownAbovePanel);
     
     function updateDropdownLabels() {
         const f = files[activeIndex];
@@ -310,8 +316,6 @@
             closeDropdown();
         }
     });
-    
-    floatingMenuBtn.addEventListener('click', showDropdownAbovePanel);
     
     document.getElementById('menuUndo').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -341,7 +345,6 @@
         e.stopPropagation();
         fileInput.click();
         closeDropdown();
-        editor.focus();
     });
     document.getElementById('menuWrap').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -416,13 +419,12 @@
         localStorage.setItem('spacepad_files', JSON.stringify(files));
         localStorage.setItem('spacepad_active', activeIndex);
     }
-    function switchTab(i) { activeIndex = i; renderTabs(); closeDropdown(); editor.focus(); }
+    function switchTab(i) { activeIndex = i; renderTabs(); closeDropdown(); }
     function newFile() {
         files.push({ name: 'untitled.html', content: '', fontSize: 16, wrap: true, isMono: true });
         activeIndex = files.length - 1;
         renderTabs();
         closeDropdown();
-        editor.focus();
     }
     function renameTab(i) {
         const newName = prompt('File name:', files[i].name);
@@ -431,7 +433,6 @@
             renderTabs(); 
         }
         closeDropdown();
-        editor.focus();
     }
     function closeTab(i, e) {
         e.stopPropagation();
@@ -440,7 +441,6 @@
         if (activeIndex >= files.length) activeIndex = files.length - 1;
         renderTabs();
         closeDropdown();
-        editor.focus();
     }
     function saveFile() {
         const f = files[activeIndex];
@@ -459,7 +459,6 @@
         a.href = URL.createObjectURL(blob);
         a.download = finalName;
         a.click();
-        editor.focus();
     }
     function openFile(e) {
         const file = e.target.files[0]; if (!file) return;
@@ -467,7 +466,6 @@
         reader.onload = (ev) => {
             files.push({ name: file.name, content: ev.target.result, fontSize: 16, wrap: true, isMono: true });
             activeIndex = files.length - 1; renderTabs();
-            editor.focus();
         };
         reader.readAsText(file);
         closeDropdown();
