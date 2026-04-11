@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Spacepad</title>
- <meta name="theme-color" content="#1e1e1e">
+    <meta name="theme-color" content="#1e1e1e">
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlNwYWNlcGFkIiwKICAic2hvcnRfbmFtZSI6ICJTcGFjZXBhZCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMWUxZTFlIiwKICAidGhlbWVfY29sb3IiOiAiIzFlMWUxZSIsCiAgImljb25zIjogW3sgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi8yOTkxLzI5OTE5OTAucG5nIiwgInR5cGUiOiAiaW1hZ2UvcG5nIiwgInNpemVzIjogIjUxMng1MTIiIH1dCn0=">
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='68' font-size='48' fill='%23FFFFFF' text-anchor='middle' font-family='monospace' font-weight='bold'%3E%3C/%3E%3C/text%3E%3C/svg%3E">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='68' font-size='48' fill='%23FFFFFF' text-anchor='middle' font-family='monospace' font-weight='bold'%3E%3C/%3E%3C/text%3E%3C/svg%3E">
@@ -25,11 +25,33 @@
         .tabs-container { display: flex; background: #252526; border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 10; }
         .tabs { display: flex; overflow-x: auto; flex: 1; scrollbar-width: none; scroll-behavior: smooth; }
         .tabs::-webkit-scrollbar { display: none; }
-        .tab { display: flex; align-items: stretch; cursor: pointer; border-right: 1px solid var(--border); background: #2d2d2d; font-size: 14px; color: #888; max-width: 180px; transition: background 0.2s; font-family: sans-serif; }
+        .tab { display: flex; align-items: stretch; cursor: pointer; border-right: 1px solid var(--border); background: #2d2d2d; font-size: 14px; color: #888; max-width: 180px; min-width: 80px; transition: background 0.2s; font-family: sans-serif; }
         .tab:hover { background: #353535; }
         .tab.active { background: var(--bg); border-top: 3px solid var(--accent); color: #fff; }
-        .tab-name { padding: 12px 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; display: flex; align-items: center; font-family: sans-serif; }
-        .tab-close { padding: 0 12px; display: flex; align-items: center; font-size: 18px; transition: color 0.2s; }
+        .tab-name { 
+            padding: 12px 8px; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            white-space: nowrap; 
+            flex: 1; 
+            display: flex; 
+            align-items: center; 
+            font-family: sans-serif;
+            min-width: 0;
+        }
+        .tab-name input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-family: sans-serif;
+            font-size: 13px;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            outline: none;
+            font-weight: inherit;
+        }
+        .tab-close { padding: 0 12px; display: flex; align-items: center; font-size: 18px; transition: color 0.2s; flex-shrink: 0; }
         .tab-close:hover { color: #fff; background: rgba(255,255,255,0.05); }
         .only-one .tab-close { display: none; }
         .add-tab { padding: 12px 22px; cursor: pointer; background: #2d2d2d; color: #fff; font-size: 20px; border-left: 1px solid var(--border); flex-shrink: 0; transition: background 0.2s; font-family: sans-serif; }
@@ -127,7 +149,7 @@
         }
         .action-panel .save-btn {
             padding: 0 24px;
-            font-size: 26px;
+            font-size: 16px;
         }
         .action-panel .menu-btn {
             padding: 0 28px;
@@ -184,7 +206,7 @@
                 <button onclick="shiftLine(true)" class="tab-btn" title="Tab right">⇥</button>
             </div>
             <div class="action-panel">
-                <button onclick="saveFile()" class="save-btn" title="Download">⤓</button>
+                <button onclick="saveFile()" class="save-btn" title="Save">💾</button>
             </div>
             <div class="action-panel">
                 <button id="floatingMenuBtn" class="menu-btn" title="Menu">⋮</button>
@@ -273,7 +295,6 @@
         }
         
         const panelRect = panelsContainer.getBoundingClientRect();
-        // Временно показываем меню для получения высоты
         const wasVisible = dropdownMenu.classList.contains('show');
         if (!wasVisible) {
             dropdownMenu.style.top = '0px';
@@ -297,9 +318,8 @@
         }
     }
     
-    // Предотвращаем потерю фокуса при клике на кнопку меню
     floatingMenuBtn.addEventListener('mousedown', (e) => {
-        e.preventDefault();  // Это не даст текстовому полю потерять фокус
+        e.preventDefault();
         e.stopPropagation();
     });
     
@@ -367,6 +387,49 @@
         editor.focus();
     });
     
+    function startRename(index, nameDiv) {
+        const tabElement = nameDiv.closest('.tab');
+        if (!tabElement) return;
+        
+        const oldName = files[index].name;
+        const originalWidth = tabElement.offsetWidth;
+        // Фиксируем ширину вкладки на время редактирования
+        tabElement.style.width = originalWidth + 'px';
+        tabElement.style.minWidth = originalWidth + 'px';
+        tabElement.style.maxWidth = originalWidth + 'px';
+        
+        const input = document.createElement('input');
+        input.value = oldName;
+        input.style.width = '100%';
+        
+        const cleanup = () => {
+            tabElement.style.width = '';
+            tabElement.style.minWidth = '';
+            tabElement.style.maxWidth = '';
+            renderTabs();
+        };
+        
+        input.addEventListener('blur', () => {
+            const newName = input.value.trim();
+            if (newName && newName !== oldName) {
+                files[index].name = newName;
+            }
+            cleanup();
+        });
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                input.blur();
+            } else if (e.key === 'Escape') {
+                input.blur();
+            }
+            e.stopPropagation();
+        });
+        nameDiv.innerHTML = '';
+        nameDiv.appendChild(input);
+        input.focus();
+        input.select();
+    }
+    
     function scrollIntoViewFix() {
         const start = editor.selectionStart;
         const textBefore = editor.value.substring(0, start);
@@ -380,7 +443,24 @@
         document.getElementById('tabsOuter').classList.toggle('only-one', files.length === 1);
         files.forEach((f, i) => {
             const d = document.createElement('div'); d.className = `tab ${i === activeIndex ? 'active' : ''}`;
-            d.innerHTML = `<div class="tab-name" onclick="switchTab(${i})" ondblclick="renameTab(${i})">${escapeHtml(f.name)}</div><div class="tab-close" onclick="closeTab(${i}, event)">×</div>`;
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'tab-name';
+            nameDiv.textContent = f.name;
+            nameDiv.title = f.name;
+            nameDiv.onclick = (e) => {
+                e.stopPropagation();
+                if (i === activeIndex) {
+                    startRename(i, nameDiv);
+                } else {
+                    switchTab(i);
+                }
+            };
+            const closeSpan = document.createElement('div');
+            closeSpan.className = 'tab-close';
+            closeSpan.textContent = '×';
+            closeSpan.onclick = (e) => closeTab(i, e);
+            d.appendChild(nameDiv);
+            d.appendChild(closeSpan);
             bar.appendChild(d);
         });
         const activeTab = document.querySelector('.tab.active'); if (activeTab) activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center' });
@@ -424,14 +504,6 @@
         files.push({ name: 'untitled.html', content: '', fontSize: 16, wrap: true, isMono: true });
         activeIndex = files.length - 1;
         renderTabs();
-        closeDropdown();
-    }
-    function renameTab(i) {
-        const newName = prompt('File name:', files[i].name);
-        if (newName) { 
-            files[i].name = newName;
-            renderTabs(); 
-        }
         closeDropdown();
     }
     function closeTab(i, e) {
