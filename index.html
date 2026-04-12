@@ -684,6 +684,7 @@
     
     const fileInputDesktop = document.createElement('input');
     fileInputDesktop.type = 'file';
+    fileInputDesktop.id = 'fileInputDesktop';
     fileInputDesktop.hidden = true;
     fileInputDesktop.onchange = (e) => openFile(e);
     document.body.appendChild(fileInputDesktop);
