@@ -227,21 +227,14 @@
         .font-mono { font-family: 'Consolas', 'Monaco', monospace !important; }
         .font-sans { font-family: sans-serif !important; }
         
-        .mobile-bottom-bar {
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            width: 100%;
-            background: #2d2d2d;
-            border-top: 1px solid var(--border);
-            z-index: 5;
-        }
-        
+        /* Мобильная панель действий (только кнопки) */
         .mobile-actions {
             display: flex;
             align-items: stretch;
             width: 100%;
             background: #2d2d2d;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
         }
         
         .mobile-action-btn {
@@ -318,6 +311,7 @@
             font-family: sans-serif;
         }
         
+        /* Общая строка статистики для всех устройств */
         .stats-bar { 
             background: #252526;
             color: #aaa; 
@@ -330,6 +324,7 @@
             white-space: nowrap; 
             width: 100%;
             border-top: 1px solid var(--border);
+            flex-shrink: 0;
         }
         .stats-bar b { color: #ddd; }
         
@@ -339,8 +334,9 @@
         
         #caretHelper { position: absolute; width: 1px; height: 1px; pointer-events: none; opacity: 0; }
         
+        /* На десктопе скрываем мобильную панель действий */
         @media (min-width: 768px) {
-            .mobile-bottom-bar {
+            .mobile-actions {
                 display: none;
             }
             .desktop-toolbar {
@@ -411,28 +407,29 @@
         <div id="caretHelper"></div>
     </div>
     
-    <div class="mobile-bottom-bar" id="mobileBottomBar">
-        <div class="mobile-actions">
-            <button class="mobile-action-btn mobile-tab-btn" id="mobileTabLeftBtn">
-                <span class="action-icon">⇤</span>
-            </button>
-            <span class="mobile-tab-label">Tab</span>
-            <button class="mobile-action-btn mobile-tab-btn" id="mobileTabRightBtn">
-                <span class="action-icon">⇥</span>
-            </button>
-            <button class="mobile-action-btn mobile-save-btn" id="mobileSaveBtn">
-                <span class="action-icon">💾</span>
-                <span class="action-text">Save as...</span>
-            </button>
-            <button class="mobile-action-btn mobile-menu-btn" id="mobileMenuBtn">
-                <span class="action-icon">⋮</span>
-            </button>
-        </div>
-        <div class="stats-bar">
-            <span>Lines: <b id="statLines">1</b></span>
-            <span>Chars: <b id="statChars">0</b></span>
-            <span>No spaces: <b id="statNoSpace">0</b></span>
-        </div>
+    <!-- Мобильная панель действий (только кнопки) -->
+    <div class="mobile-actions" id="mobileActions">
+        <button class="mobile-action-btn mobile-tab-btn" id="mobileTabLeftBtn">
+            <span class="action-icon">⇤</span>
+        </button>
+        <span class="mobile-tab-label">Tab</span>
+        <button class="mobile-action-btn mobile-tab-btn" id="mobileTabRightBtn">
+            <span class="action-icon">⇥</span>
+        </button>
+        <button class="mobile-action-btn mobile-save-btn" id="mobileSaveBtn">
+            <span class="action-icon">💾</span>
+            <span class="action-text">Save as...</span>
+        </button>
+        <button class="mobile-action-btn mobile-menu-btn" id="mobileMenuBtn">
+            <span class="action-icon">⋮</span>
+        </button>
+    </div>
+    
+    <!-- Строка статистики (общая для десктопа и мобильных) -->
+    <div class="stats-bar">
+        <span>Lines: <b id="statLines">1</b></span>
+        <span>Chars: <b id="statChars">0</b></span>
+        <span>No spaces: <b id="statNoSpace">0</b></span>
     </div>
 </div>
 
@@ -677,9 +674,7 @@
     function withFocusKeep(action) {
         return function(...args) {
             const hadFocus = (document.activeElement === editor);
-            // Если фокус был на редакторе, убедимся, что он не потеряется
             if (hadFocus) {
-                // Небольшая задержка не нужна, но вызов focus() перед действием помогает
                 editor.focus();
             }
             const result = action(...args);
@@ -743,7 +738,7 @@
         }
     });
     
-    // Пункты меню, которые НЕ закрывают меню (используем обёртку с сохранением фокуса)
+    // Пункты меню, которые НЕ закрывают меню
     document.getElementById('menuUndoMobile').addEventListener('click', (e) => {
         e.stopPropagation();
         undoAction();
@@ -1009,4 +1004,4 @@
     renderTabs();
 </script>
 </body>
-</html>
+                                          </html>
